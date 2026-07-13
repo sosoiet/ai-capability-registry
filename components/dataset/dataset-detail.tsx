@@ -96,6 +96,8 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
     dataset.quality.reduce((acc, q) => acc + q.value, 0) / dataset.quality.length,
   )
 
+  const triggerClass = "data-active:text-foreground after:bg-primary"
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-8 md:py-10">
       <DetailHeader
@@ -119,11 +121,21 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
       <Tabs defaultValue="overview" className="gap-6">
         <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
           <TabsList variant="line" className="w-max">
-            <TabsTrigger value="overview">개요</TabsTrigger>
-            <TabsTrigger value="source">데이터 출처</TabsTrigger>
-            <TabsTrigger value="quality">메타데이터 품질</TabsTrigger>
-            <TabsTrigger value="links">연계 정보</TabsTrigger>
-            <TabsTrigger value="versions">버전 히스토리</TabsTrigger>
+            <TabsTrigger value="overview" className={triggerClass}>
+              개요
+            </TabsTrigger>
+            <TabsTrigger value="source" className={triggerClass}>
+              데이터 출처
+            </TabsTrigger>
+            <TabsTrigger value="quality" className={triggerClass}>
+              메타데이터 품질
+            </TabsTrigger>
+            <TabsTrigger value="links" className={triggerClass}>
+              연계 정보
+            </TabsTrigger>
+            <TabsTrigger value="versions" className={triggerClass}>
+              버전 히스토리
+            </TabsTrigger>
           </TabsList>
         </div>
 
