@@ -3,9 +3,11 @@
 import Image from "next/image"
 import Link from "next/link"
 import {
+  ArrowDown,
   ArrowDownToLine,
   ArrowRight,
   ArrowUpFromLine,
+  Box,
   Boxes,
   Building2,
   Code2,
@@ -15,7 +17,9 @@ import {
   FileCode2,
   GitBranch,
   History,
+  Layers,
   Mail,
+  Rocket,
   Server,
   ShieldCheck,
   SplitSquareHorizontal,
@@ -136,31 +140,108 @@ function flattenTree(node: TreeNode): TreeNode[] {
   return out
 }
 
-function Lineage({ nodes }: { nodes: TreeNode[] }) {
+/** Maps a tree node's stage to display metadata: an icon, a human role label,
+ *  and the relationship label for the edge coming into this node from its parent. */
+function stageMeta(stage: string): {
+  icon: typeof Box
+  role: string
+  edge: string | null
+} {
+  const s = stage.toLowerCase()
+  if (s.includes("base") || s.includes("pretrain")) {
+    return { icon: Box, role: "사전학습 · Pretrained", edge: null }
+  }
+  if (s.includes("fine") || s.includes("transfer")) {
+    return { icon: Layers, role: "전이학습 · Transfer Learning", edge: "전이학습 (Transfer Learning)" }
+  }
+  if (s.includes("quant") || s.includes("optim")) {
+    return { icon: Cpu, role: "양자화 · Quantized", edge: "양자화 · 경량화" }
+  }
+  if (s.includes("edge") || s.includes("deploy")) {
+    return { icon: Rocket, role: "엣지 배포 · Edge", edge: "엣지 최적화" }
+  }
+  return { icon: GitBranch, role: stage, edge: "파생" }
+}
+
+/** A single node in the model tree, drawn with a connector rail to its children. */
+function LineageNode({ node, depth }: { node: TreeNode; depth: number }) {
+  const meta = stageMeta(node.stage)
+  const Icon = meta.icon
+  const children = node.children ?? []
+  const isRoot = depth === 0
+
   return (
     <div className="flex flex-col">
-      {nodes.map((node, i) => {
-        const isLast = i === nodes.length - 1
-        return (
-          <div key={node.id} className="relative flex gap-3 pb-5 last:pb-0">
-            {/* Icon column with connecting line */}
-            <div className="relative flex flex-col items-center">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <span className="size-2 rounded-full bg-current" />
-              </span>
-              {!isLast && <span aria-hidden className="mt-1 w-px flex-1 bg-border" />}
-            </div>
-            {/* Content */}
-            <div className="flex flex-1 flex-col gap-1 pt-0.5">
-              <span className="font-medium leading-tight text-pretty">{node.name}</span>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-0.5 text-xs text-muted-foreground">
-                <span>파일 용량 {node.size}</span>
-                <span>날짜 {node.createdAt}</span>
-              </div>
-            </div>
+      {/* Edge label describing the relationship from the parent into this node. */}
+      {!isRoot && meta.edge && (
+        <div className="flex items-center gap-2 py-2 pl-[18px] text-primary">
+          <ArrowDown className="size-3.5 shrink-0" />
+          <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium">
+            {meta.edge}
+          </span>
+        </div>
+      )}
+
+      <div className="relative flex gap-3">
+        {/* Icon + vertical connector to the next node. */}
+        <div className="relative flex flex-col items-center">
+          <span
+            className={cn(
+              "flex size-9 shrink-0 items-center justify-center rounded-lg",
+              isRoot
+                ? "bg-primary text-primary-foreground"
+                : "bg-primary/10 text-primary",
+            )}
+          >
+            <Icon className="size-4" />
+          </span>
+          {children.length > 0 && (
+            <span aria-hidden className="mt-1 w-px flex-1 bg-border" />
+          )}
+        </div>
+
+        {/* Node card */}
+        <div className="mb-1 flex flex-1 flex-col gap-2 rounded-xl border border-border bg-card p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold leading-tight text-pretty">{node.name}</span>
+            {isRoot && (
+              <Badge className="border-primary/20 bg-primary/10 text-primary">Root</Badge>
+            )}
           </div>
-        )
-      })}
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary" className="text-[11px]">
+              {meta.role}
+            </Badge>
+            <Badge variant="outline" className="text-[11px]">
+              {node.framework}
+            </Badge>
+          </div>
+
+          <p className="text-xs leading-5 text-muted-foreground text-pretty">
+            {node.description}
+          </p>
+
+          <div className="flex flex-wrap gap-x-4 gap-y-1 pt-0.5 text-[11px] text-muted-foreground">
+            <span>파일 용량 {node.size}</span>
+            <span>런타임 {node.runtime}</span>
+            <span>날짜 {node.createdAt}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Children rendered recursively to form the tree. */}
+      {children.map((child) => (
+        <LineageNode key={child.id} node={child} depth={depth + 1} />
+      ))}
+    </div>
+  )
+}
+
+function Lineage({ root }: { root: TreeNode }) {
+  return (
+    <div className="flex flex-col">
+      <LineageNode node={root} depth={0} />
     </div>
   )
 }
@@ -690,7 +771,15 @@ export function ModelDetail({ model }: { model: Model }) {
               {/* 모델 트리 */}
               <div className="flex min-h-[420px] flex-col gap-5 p-6 md:p-8">
                 <SectionTitle icon={GitBranch}>모델 트리</SectionTitle>
-                <Lineage nodes={lineage} />
+                <p className="-mt-2 text-xs leading-5 text-muted-foreground text-pretty">
+                  사전학습(Pretrained) 모델에서 전이학습을 거쳐 파생된 모델 계보입니다. 각 노드는
+                  이전 단계 모델을 이어받아 학습·최적화된 결과물입니다.
+                </p>
+                {model.tree ? (
+                  <Lineage root={model.tree} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">모델 트리 정보가 없습니다.</p>
+                )}
               </div>
 
               {/* 버전 관리 정보 */}
