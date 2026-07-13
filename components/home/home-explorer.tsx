@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 import { useMemo, useState } from "react"
 
-import { ModelCard } from "@/components/registry/model-card"
+import { PairCard } from "@/components/pairs/pair-card"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -37,6 +37,7 @@ import {
   dataTypes,
   datasets,
   industries,
+  assetPairs,
   models,
   taskTypes,
 } from "@/lib/registry-data"
@@ -54,11 +55,11 @@ const stats = [
     value: models.length,
     icon: Cpu,
   },
-  { key: "pairs", label: "연계 페어", value: 8, icon: Boxes },
+  { key: "pairs", label: "연계 페어", value: assetPairs.length, icon: Boxes },
   {
     key: "downloadable",
     label: "다운로드 가능",
-    value: 7,
+    value: assetPairs.filter((pair) => pair.downloadable).length,
     icon: Download,
   },
   {
@@ -78,25 +79,27 @@ export function HomeExplorer() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
 
-    return models
-      .filter((model) => {
+    return assetPairs
+      .filter((pair) => {
         const matchesQuery =
           !q ||
-          model.name.toLowerCase().includes(q) ||
-          model.description.toLowerCase().includes(q) ||
-          model.tags.some((tag) => tag.toLowerCase().includes(q))
+          pair.title.toLowerCase().includes(q) ||
+          pair.description.toLowerCase().includes(q) ||
+          pair.dataset.name.toLowerCase().includes(q) ||
+          pair.model.name.toLowerCase().includes(q) ||
+          pair.tags.some((tag) => tag.toLowerCase().includes(q))
 
         const matchesIndustry =
           selectedIndustries.length === 0 ||
-          selectedIndustries.includes(model.industry)
+          selectedIndustries.includes(pair.model.industry)
 
         const matchesDataType =
           selectedDataTypes.length === 0 ||
-          selectedDataTypes.includes(model.dataType)
+          selectedDataTypes.includes(pair.model.dataType)
 
         const matchesTask =
           selectedTasks.length === 0 ||
-          selectedTasks.includes(model.task)
+          selectedTasks.includes(pair.task)
 
         return (
           matchesQuery &&
@@ -105,7 +108,7 @@ export function HomeExplorer() {
           matchesTask
         )
       })
-      .sort((a, b) => Number(b.featured) - Number(a.featured))
+      .sort((a, b) => b.stars - a.stars)
   }, [
     query,
     selectedIndustries,
@@ -156,7 +159,7 @@ export function HomeExplorer() {
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="모델명, 설명, 태그로 검색하세요"
+              placeholder="데이터셋, 모델, 태그로 검색하세요"
               className="h-11 border-0 bg-transparent pl-9 text-sm shadow-none focus-visible:ring-0"
             />
           </div>
@@ -203,7 +206,7 @@ export function HomeExplorer() {
       >
         <div className="flex items-center gap-1.5 text-sm font-medium">
           <SlidersHorizontal className="size-4 text-primary" />
-          모델 필터
+          학습 조합 필터
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -274,7 +277,7 @@ export function HomeExplorer() {
                 <span className="font-medium text-foreground">
                   {filtered.length}
                 </span>
-                개 모델 검색됨
+                개 학습 조합 검색됨
               </span>
 
               <Button
@@ -295,17 +298,18 @@ export function HomeExplorer() {
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">
-            {hasFilters ? "검색 결과" : "추천 모델"}
+            {hasFilters ? "검색 결과" : "추천 학습 조합"}
           </h2>
         </div>
 
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((model, index) => (
-              <ModelCard
-                key={model.id}
-                model={model}
+          <div className="flex flex-col gap-4">
+            {filtered.map((pair, index) => (
+              <PairCard
+                key={pair.id}
+                pair={pair}
                 index={index}
+                variant="featured"
               />
             ))}
           </div>

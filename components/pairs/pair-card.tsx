@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "motion/react"
+import Image from "next/image"
 import Link from "next/link"
 import {
   AlertTriangle,
@@ -23,7 +24,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import type { AssetPair } from "@/lib/registry-data"
+import { getTaskThumbnail, type AssetPair } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
 
 function formatCompact(n: number): string {
@@ -75,23 +76,42 @@ function AssetNode({
   kind,
   name,
   subtitle,
+  image,
+  featured = false,
 }: {
   kind: "dataset" | "model"
   name: string
   subtitle: string
+  image?: string
+  featured?: boolean
 }) {
   const isDataset = kind === "dataset"
   const Icon = isDataset ? Database : Cpu
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
-      <span
-        className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-lg",
-          isDataset ? "bg-chart-3/10 text-chart-3" : "bg-primary/10 text-primary",
-        )}
-      >
-        <Icon className="size-5" />
-      </span>
+    <div
+      className={cn(
+        "flex min-w-0 items-center gap-3 overflow-hidden rounded-xl border p-4",
+        featured && !isDataset
+          ? "flex-[1.35] border-primary/25 bg-gradient-to-br from-primary/12 via-primary/6 to-background shadow-sm ring-1 ring-primary/10"
+          : "flex-1 border-border bg-muted/30",
+      )}
+    >
+      {featured && !isDataset && image ? (
+        <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg border border-primary/20 bg-primary/10 shadow-sm">
+          <Image src={image} alt="" fill className="object-cover" sizes="80px" />
+          <span className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
+        </span>
+      ) : (
+        <span
+          className={cn(
+            "flex shrink-0 items-center justify-center rounded-lg",
+            featured && !isDataset ? "size-12" : "size-10",
+            isDataset ? "bg-chart-3/10 text-chart-3" : "bg-primary/10 text-primary",
+          )}
+        >
+          <Icon className={featured && !isDataset ? "size-6" : "size-5"} />
+        </span>
+      )}
       <div className="flex min-w-0 flex-col gap-0.5">
         <span
           className={cn(
@@ -101,15 +121,24 @@ function AssetNode({
         >
           {isDataset ? "AI 데이터셋" : "AI 모델"}
         </span>
-        <span className="truncate text-sm font-semibold leading-tight">{name}</span>
+        <span className={cn("truncate font-semibold leading-tight", featured && !isDataset ? "text-base" : "text-sm")}>{name}</span>
         <span className="truncate text-xs text-muted-foreground">{subtitle}</span>
       </div>
     </div>
   )
 }
 
-export function PairCard({ pair, index = 0 }: { pair: AssetPair; index?: number }) {
+export function PairCard({
+  pair,
+  index = 0,
+  variant = "default",
+}: {
+  pair: AssetPair
+  index?: number
+  variant?: "default" | "featured"
+}) {
   const isValidated = pair.validation === "Validated"
+  const isFeatured = variant === "featured"
 
   return (
     <motion.div
@@ -117,7 +146,12 @@ export function PairCard({ pair, index = 0 }: { pair: AssetPair; index?: number 
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.4), ease: "easeOut" }}
     >
-      <Card className="flex flex-col gap-5 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:ring-primary/30 hover:shadow-lg hover:shadow-foreground/5 md:p-6">
+      <Card
+        className={cn(
+          "flex flex-col gap-5 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:ring-primary/30 hover:shadow-lg hover:shadow-foreground/5 md:p-6",
+          isFeatured && "border-primary/15 bg-gradient-to-r from-card via-card to-primary/[0.025]",
+        )}
+      >
         {/* Top row: title + minimal badges + status icons */}
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -146,6 +180,7 @@ export function PairCard({ pair, index = 0 }: { pair: AssetPair; index?: number 
               kind="dataset"
               name={pair.dataset.name}
               subtitle={`${pair.dataset.labelType} · ${pair.task}`}
+              featured={isFeatured}
             />
 
             {/* Center link indicator */}
@@ -163,6 +198,8 @@ export function PairCard({ pair, index = 0 }: { pair: AssetPair; index?: number 
               kind="model"
               name={pair.model.name}
               subtitle={`${pair.framework} · ${pair.version}`}
+              image={getTaskThumbnail(pair.model.task)}
+              featured={isFeatured}
             />
           </div>
 
@@ -177,7 +214,7 @@ export function PairCard({ pair, index = 0 }: { pair: AssetPair; index?: number 
               </div>
               <div className="flex items-center gap-4 lg:gap-5">
                 <span className="flex flex-col leading-tight lg:flex-row lg:items-center lg:gap-1.5">
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap text-xs text-muted-foreground">
                     <Download className="size-3.5" />
                     다운로드
                   </span>
@@ -186,7 +223,7 @@ export function PairCard({ pair, index = 0 }: { pair: AssetPair; index?: number 
                   </span>
                 </span>
                 <span className="flex flex-col leading-tight lg:flex-row lg:items-center lg:gap-1.5">
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap text-xs text-muted-foreground">
                     <Star className="size-3.5" />
                     즐겨찾기
                   </span>
