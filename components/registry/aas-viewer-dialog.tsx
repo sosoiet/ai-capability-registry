@@ -88,7 +88,10 @@ export function AasViewerDialog({
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <GitBranch className="size-4 text-muted-foreground" />
-              <Select value={versionLabel} onValueChange={setVersionLabel}>
+              <Select
+                value={versionLabel}
+                onValueChange={(v) => v && setVersionLabel(v)}
+              >
                 <SelectTrigger size="sm" className="min-w-32">
                   <SelectValue />
                 </SelectTrigger>

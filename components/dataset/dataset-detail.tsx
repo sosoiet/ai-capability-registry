@@ -21,6 +21,7 @@ import {
   Workflow,
 } from "lucide-react"
 
+import { AasActions } from "@/components/registry/aas-actions"
 import { DetailHeader } from "@/components/registry/detail-header"
 import { DistributionChart } from "@/components/registry/distribution-chart"
 import { LinkedModelCard } from "@/components/registry/linked-model-card"
@@ -32,6 +33,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { buildDatasetAasEnv } from "@/lib/aas/mock-aas"
 import { getModelsByDataset, getTaskThumbnail, type Dataset } from "@/lib/registry-data"
 
 /** Parse a count string like "12,480" into a number. */
@@ -115,6 +117,15 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
               {dataset.storage.type}
             </Badge>
           </>
+        }
+        actions={
+          <AasActions
+            entityId={dataset.id}
+            entityKind="dataset"
+            title={dataset.name}
+            versionMeta={dataset.versions}
+            env={buildDatasetAasEnv(dataset)}
+          />
         }
       />
 

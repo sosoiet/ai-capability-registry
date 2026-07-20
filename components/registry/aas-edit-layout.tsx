@@ -177,7 +177,10 @@ export function AasEditLayout({
             <span className="text-xs text-muted-foreground">현재 버전</span>
             <div className="flex items-center gap-1.5">
               <GitBranch className="size-4 text-muted-foreground" />
-              <Select value={baseVersion} onValueChange={switchBaseVersion}>
+              <Select
+                value={baseVersion}
+                onValueChange={(v) => v && switchBaseVersion(v)}
+              >
                 <SelectTrigger size="sm" className="min-w-32">
                   <SelectValue />
                 </SelectTrigger>
