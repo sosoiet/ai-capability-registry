@@ -107,6 +107,7 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
         imageAlt={`${dataset.name} 미리보기`}
         title={dataset.name}
         version={dataset.version}
+        versions={dataset.versions}
         breadcrumb={{ label: "AI Dataset", href: "/datasets" }}
         tags={dataset.tags}
         badges={

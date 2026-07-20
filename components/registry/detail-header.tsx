@@ -16,6 +16,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
+import { PreviousVersionNotice, VersionSelect } from "@/components/registry/version-select"
+import type { VersionEntry } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
 
 export function DetailHeader({
@@ -23,6 +25,7 @@ export function DetailHeader({
   imageAlt,
   title,
   version,
+  versions,
   breadcrumb,
   tags,
   badges,
@@ -34,6 +37,8 @@ export function DetailHeader({
   imageAlt: string
   title: string
   version: string
+  /** Full version history. When it has more than one entry, a version selector is shown. */
+  versions?: VersionEntry[]
   breadcrumb: { label: string; href: string }
   tags: string[]
   badges: React.ReactNode
@@ -43,7 +48,13 @@ export function DetailHeader({
   actions?: React.ReactNode
 }) {
   const [favorite, setFavorite] = useState(false)
+  const [selectedVersion, setSelectedVersion] = useState(version)
   const PrimaryIcon = primaryAction?.icon
+
+  const hasHistory = !!versions && versions.length > 1
+  const latestVersion = versions?.[0]?.version ?? version
+  const selectedEntry = versions?.find((v) => v.version === selectedVersion)
+  const viewingPrevious = hasHistory && selectedVersion !== latestVersion
 
   return (
     <div className="flex flex-col gap-5">
@@ -72,9 +83,17 @@ export function DetailHeader({
         <div className="flex flex-1 flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {badges}
-            <Badge variant="outline" className="font-mono">
-              {version}
-            </Badge>
+            {hasHistory ? (
+              <VersionSelect
+                versions={versions!}
+                value={selectedVersion}
+                onValueChange={setSelectedVersion}
+              />
+            ) : (
+              <Badge variant="outline" className="font-mono">
+                {version}
+              </Badge>
+            )}
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-balance md:text-3xl">{title}</h1>
           <div className="flex flex-wrap gap-1.5">
@@ -84,6 +103,9 @@ export function DetailHeader({
               </Badge>
             ))}
           </div>
+          {viewingPrevious && selectedEntry && (
+            <PreviousVersionNotice entry={selectedEntry} />
+          )}
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-4 md:gap-5">
           {stats && stats.length > 0 && (

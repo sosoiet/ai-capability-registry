@@ -257,6 +257,7 @@ export function ModelDetail({ model }: { model: Model }) {
         imageAlt={`${model.name} 미리보기`}
         title={model.name}
         version={model.version}
+        versions={model.versions}
         breadcrumb={{ label: "AI Model", href: "/models" }}
         tags={model.tags}
         badges={
