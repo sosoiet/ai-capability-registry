@@ -49,10 +49,23 @@ function langValue(value: unknown): string | undefined {
   return undefined
 }
 
+/** First language tag from a MultiLanguageProperty value. */
+function langTag(value: unknown): string | undefined {
+  if (Array.isArray(value)) {
+    const first = value.find((v) => v && typeof v === "object" && "language" in v) as
+      | LangString
+      | undefined
+    return first?.language
+  }
+  return undefined
+}
+
 /** Recursively map a single submodelElement into a TreeNode. */
 function mapElement(el: SubmodelElement): TreeNode {
   const modelType = (el.modelType as string) || "Property"
   const label = el.idShort || modelType
+  const description = firstText(el.description)
+  const semanticId = el.semanticId
 
   switch (modelType) {
     case "SubmodelElementCollection":
@@ -66,6 +79,8 @@ function mapElement(el: SubmodelElement): TreeNode {
         label,
         type: modelType,
         badge: children.length ? `${children.length}` : undefined,
+        description,
+        semanticId,
         children,
       }
     }
@@ -75,6 +90,9 @@ function mapElement(el: SubmodelElement): TreeNode {
         label,
         type: "MultiLanguageProperty",
         value: langValue(el.value),
+        language: langTag(el.value),
+        description,
+        semanticId,
       }
     }
     case "File":
@@ -87,6 +105,9 @@ function mapElement(el: SubmodelElement): TreeNode {
         type: modelType,
         value: val,
         badge: el.contentType,
+        contentType: el.contentType,
+        description,
+        semanticId,
       }
     }
     case "Range": {
@@ -99,6 +120,9 @@ function mapElement(el: SubmodelElement): TreeNode {
         value:
           min != null || max != null ? `${min ?? "—"} … ${max ?? "—"}` : undefined,
         badge: el.valueType,
+        valueType: el.valueType,
+        description,
+        semanticId,
       }
     }
     case "ReferenceElement":
@@ -108,6 +132,8 @@ function mapElement(el: SubmodelElement): TreeNode {
         label,
         type: modelType,
         value: referenceValue(el.value as AasReference),
+        description,
+        semanticId,
       }
     }
     case "Entity": {
@@ -118,11 +144,13 @@ function mapElement(el: SubmodelElement): TreeNode {
         id: nextId("sme"),
         label,
         type: "Entity",
+        description,
+        semanticId,
         children: statements.map(mapElement),
       }
     }
     case "Operation": {
-      return { id: nextId("sme"), label, type: "Operation" }
+      return { id: nextId("sme"), label, type: "Operation", description, semanticId }
     }
     default: {
       // Property and anything else we treat as a leaf value.
@@ -136,6 +164,9 @@ function mapElement(el: SubmodelElement): TreeNode {
         type: "Property",
         value: val,
         badge: el.valueType,
+        valueType: el.valueType,
+        description,
+        semanticId,
       }
     }
   }
@@ -149,6 +180,8 @@ function mapSubmodel(sm: Submodel): TreeNode {
     label: sm.idShort || sm.id || "Submodel",
     type: "Submodel",
     badge: elements.length ? `${elements.length}` : undefined,
+    description: firstText(sm.description),
+    semanticId: sm.semanticId,
     children: elements.map(mapElement),
   }
 }

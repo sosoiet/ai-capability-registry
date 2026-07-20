@@ -30,8 +30,10 @@ import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AasActions } from "@/components/registry/aas-actions"
 import { DetailHeader } from "@/components/registry/detail-header"
 import { TaskBadge } from "@/components/registry/task-badge"
+import { buildModelAasEnv } from "@/lib/aas/mock-aas"
 import { getDataset, getTaskThumbnail, type Model, type TreeNode } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
 
@@ -268,6 +270,15 @@ export function ModelDetail({ model }: { model: Model }) {
         }
         stats={headerStats}
         primaryAction={{ label: "Deploy", icon: Cpu }}
+        actions={
+          <AasActions
+            entityId={model.id}
+            entityKind="model"
+            title={model.name}
+            versionMeta={model.versions}
+            env={buildModelAasEnv(model)}
+          />
+        }
       />
 
       <Tabs defaultValue="overview" className="gap-6">

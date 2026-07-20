@@ -74,10 +74,15 @@ export function AasTreeNode({
   node,
   depth,
   defaultOpen,
+  selectedId,
+  onSelect,
 }: {
   node: TreeNode
   depth: number
   defaultOpen?: boolean
+  /** When provided, rows are selectable and the matching id is highlighted. */
+  selectedId?: string
+  onSelect?: (node: TreeNode) => void
 }) {
   const hasChildren = !!node.children && node.children.length > 0
   // Expand top levels by default; collapse deep leaves' parents.
@@ -85,12 +90,35 @@ export function AasTreeNode({
 
   const style = NODE_STYLE[node.type] ?? NODE_STYLE.Attribute
   const Icon = style.icon
+  const selectable = !!onSelect
+  const isSelected = selectable && selectedId === node.id
 
   return (
     <div className="flex flex-col">
       <div
-        className="group relative flex items-center gap-2.5 rounded-lg border border-transparent px-2 py-1.5 transition-colors hover:border-border hover:bg-muted/50"
+        className={cn(
+          "group relative flex items-center gap-2.5 rounded-lg border border-transparent px-2 py-1.5 transition-colors",
+          selectable
+            ? "cursor-pointer hover:border-border hover:bg-muted/50"
+            : "hover:border-border hover:bg-muted/50",
+          isSelected &&
+            "border-primary/40 bg-primary/10 hover:border-primary/40 hover:bg-primary/10",
+        )}
         style={{ marginLeft: depth * 20 }}
+        role={selectable ? "button" : undefined}
+        tabIndex={selectable ? 0 : undefined}
+        aria-selected={selectable ? isSelected : undefined}
+        onClick={selectable ? () => onSelect!(node) : undefined}
+        onKeyDown={
+          selectable
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  onSelect!(node)
+                }
+              }
+            : undefined
+        }
       >
         {depth > 0 && (
           <span
@@ -102,7 +130,10 @@ export function AasTreeNode({
         {hasChildren ? (
           <button
             type="button"
-            onClick={() => setOpen((v) => !v)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpen((v) => !v)
+            }}
             className="flex size-5 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
             aria-label={open ? "접기" : "펼치기"}
             aria-expanded={open}
@@ -146,7 +177,13 @@ export function AasTreeNode({
       {hasChildren && open && (
         <div className="flex flex-col gap-0.5 pt-0.5">
           {node.children!.map((child) => (
-            <AasTreeNode key={child.id} node={child} depth={depth + 1} />
+            <AasTreeNode
+              key={child.id}
+              node={child}
+              depth={depth + 1}
+              selectedId={selectedId}
+              onSelect={onSelect}
+            />
           ))}
         </div>
       )}

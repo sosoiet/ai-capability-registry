@@ -28,6 +28,7 @@ export function DetailHeader({
   badges,
   stats,
   primaryAction,
+  actions,
 }: {
   image: string
   imageAlt: string
@@ -38,6 +39,8 @@ export function DetailHeader({
   badges: React.ReactNode
   stats?: { label: string; value: string; accent?: boolean }[]
   primaryAction?: { label: string; icon: typeof Download }
+  /** Extra action buttons rendered alongside the favorite / primary action. */
+  actions?: React.ReactNode
 }) {
   const [favorite, setFavorite] = useState(false)
   const PrimaryIcon = primaryAction?.icon
@@ -100,7 +103,8 @@ export function DetailHeader({
               ))}
             </div>
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+          {actions}
           <Button
             variant="outline"
             size="icon"

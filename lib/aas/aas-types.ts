@@ -32,6 +32,12 @@ export type AasNodeType =
   | "Group"
   | "Attribute"
 
+/** Semantic reference shown in the property panel. */
+export type SemanticRef = {
+  type?: string
+  keys?: { type?: string; value?: string }[]
+}
+
 export type TreeNode = {
   id: string
   label: string
@@ -40,6 +46,16 @@ export type TreeNode = {
   value?: string
   /** Optional short tag shown next to the label (e.g. valueType, count). */
   badge?: string
+  /** AAS valueType (e.g. xs:string) surfaced in the property panel. */
+  valueType?: string
+  /** MIME type for File / Blob elements. */
+  contentType?: string
+  /** Human-readable description (first language string). */
+  description?: string
+  /** Language tag associated with the description / value. */
+  language?: string
+  /** Semantic identifier reference. */
+  semanticId?: SemanticRef
   children?: TreeNode[]
 }
 
