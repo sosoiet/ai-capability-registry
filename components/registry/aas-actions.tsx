@@ -31,17 +31,23 @@ export function AasActions({
 
   return (
     <>
-      <Button variant="outline" onClick={() => setOpen(true)}>
+      <Button
+        onClick={() => setOpen(true)}
+        className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-300"
+      >
         <Network data-icon="inline-start" />
         AAS 구조 보기
       </Button>
 
       <Link
         href={editHref}
-        className={cn(buttonVariants({ variant: "outline" }))}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 hover:border-orange-300"
+        )}
       >
         <FileEdit data-icon="inline-start" />
-        AAS 모델 수정
+        Edit
       </Link>
 
       <AasViewerDialog

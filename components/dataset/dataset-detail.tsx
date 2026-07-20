@@ -115,10 +115,14 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
             <TaskBadge task={dataset.task} />
             <Badge variant="secondary" className="gap-1">
               <HardDrive className="size-3.5" />
-              {dataset.storage.type}
+              {dataset.dataType}
             </Badge>
           </>
         }
+        stats={[
+          { label: "다운로드 수", value: dataset.downloads.toLocaleString() },
+          { label: "즐겨찾기 수", value: dataset.stars.toLocaleString() },
+        ]}
         actions={
           <AasActions
             entityId={dataset.id}
@@ -163,8 +167,8 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
             <StatTile label="파일 형식" value={dataset.storage.fileType} />
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
-            <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[1.4fr_1fr]">
+            <div className="flex h-full flex-col gap-6">
               {/* Basic Information */}
               <Card>
                 <CardHeader>
@@ -172,7 +176,6 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
                     <ScrollText className="size-4 text-primary" />
                     기본 정보
                   </CardTitle>
-                  <CardDescription>이 AAS 서브모델이 기술하는 학습 데이터셋 명세입니다.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                   <p className="leading-relaxed text-muted-foreground">{dataset.description}</p>
@@ -196,13 +199,12 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
               </Card>
 
               {/* Storage Information */}
-              <Card>
+              <Card className="flex flex-1 flex-col">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <HardDrive className="size-4 text-primary" />
                     스토리지 정보
                   </CardTitle>
-                  <CardDescription>실제 데이터는 외부 스토리지에 존재하며, 위치 정보만 기술됩니다.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <InfoRow label="저장소 유형" value={dataset.storage.type} />
@@ -216,33 +218,61 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
             </div>
 
             {/* Label Information */}
-            <div className="flex flex-col gap-6">
-              <Card>
+            <div className="flex h-full flex-col">
+              <Card className="flex h-full flex-col">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Tags className="size-4 text-primary" />
                     라벨 정보
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <StatTile label="라벨 수" value={dataset.classCount} suffix="종" accent />
-                    <StatTile label="라벨 타입" value={dataset.labelType} />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs font-medium text-muted-foreground">예시 라벨</span>
-                    <div className="flex flex-wrap gap-2">
-                      {dataset.distribution.map((c) => (
-                        <Badge key={c.label} variant="secondary">
-                          {c.label}
-                        </Badge>
-                      ))}
+                
+                <CardContent className="flex flex-1 flex-col gap-4">
+                  <div className="flex items-center justify-center py-2">
+                    <div className="flex flex-1 items-center justify-center gap-3 px-4">
+                      <Tags className="size-6 shrink-0 text-primary" />
+
+                      <div className="text-center">
+                        <p className="text-xl font-semibold tabular-nums">
+                          {dataset.classCount}
+                          <span className="ml-1 text-sm font-normal text-muted-foreground">
+                            종
+                          </span>
+                        </p>
+
+                        <p className="mt-1 text-xs font-medium text-muted-foreground">
+                          라벨 수
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="h-14 w-px shrink-0 bg-border" />
+
+                    <div className="flex flex-1 items-center justify-center gap-3 px-4">
+                      <Database className="size-6 shrink-0 text-primary" />
+
+                      <div className="text-center">
+                        <p className="text-xl font-semibold tabular-nums">
+                          {dataset.totalSamples}
+                        </p>
+
+                        <p className="mt-1 text-xs font-medium text-muted-foreground">
+                          총 데이터 개수
+                        </p>
+                      </div>
                     </div>
                   </div>
+
                   <Separator />
-                  <div className="flex flex-col gap-2">
+
+                  <div className="flex flex-1 flex-col gap-2">
                     <span className="text-xs font-medium text-muted-foreground">클래스 분포</span>
-                    <DistributionChart data={dataset.distribution} />
+                    <DistributionChart
+                      data={dataset.distribution}
+                      collapsibleLegend
+                      collapsedLegendRows={4}
+                      collapsedLegendHeight={160}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -256,7 +286,6 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
                 <Database className="size-4 text-primary" />
                 데이터셋 요약 (Dataset Summary)
               </CardTitle>
-              <CardDescription>전처리 완료된 학습 데이터의 규모와 분할 정보입니다.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-5">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -299,7 +328,6 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
                   <Building2 className="size-4 text-primary" />
                   담당자 정보
                 </CardTitle>
-                <CardDescription>이 데이터셋을 소유하고 관리하는 조직과 담당자입니다.</CardDescription>
               </CardHeader>
               <CardContent>
                 <InfoRow
@@ -343,7 +371,6 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
                   <Camera className="size-4 text-primary" />
                   데이터 수집 정보
                 </CardTitle>
-                <CardDescription>학습 데이터가 어떻게, 어떤 환경에서 수집되었는지 설명합니다.</CardDescription>
               </CardHeader>
               <CardContent>
                 <InfoRow
@@ -386,9 +413,6 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
                 <ShieldCheck className="size-4 text-primary" />
                 AAS 메타데이터 완전성
               </CardTitle>
-              <CardDescription>
-                데이터셋 정확도가 아닌 AAS 서브모델 명세(메타데이터)의 작성 품질을 나타냅니다.
-              </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
@@ -452,7 +476,6 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
                   <AlertTriangle className="size-4 text-primary" />
                   누락된 필수 필드
                 </CardTitle>
-                <CardDescription>AAS 서브모델 명세에서 보완이 필요한 항목입니다.</CardDescription>
               </CardHeader>
               <CardContent>
                 {dataset.validation.missingFields.length === 0 ? (

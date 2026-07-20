@@ -190,6 +190,7 @@ export interface Dataset {
   tags: string[]
   image: string
   task: TaskType
+  industry: Industry
   dataType: DataType
   distribution: DatasetClass[]
   storage: DatasetStorage
@@ -201,6 +202,8 @@ export interface Dataset {
   quality: QualityMetric[]
   sampleImages: string[]
   versions: VersionEntry[]
+  downloads: number
+  stars: number
 }
 
 export const datasets: Dataset[] = [
@@ -212,7 +215,7 @@ export const datasets: Dataset[] = [
     createdAt: "2024-02-10",
     license: "Internal",
     totalSamples: "12,480",
-    classCount: 5,
+    classCount: 8,
     labelType: "Bounding Box / Classification",
     synthetic: false,
     labeled: true,
@@ -220,6 +223,7 @@ export const datasets: Dataset[] = [
     tags: ["제조", "자동차", "외관검사"],
     image: "/images/datasets/car-dataset.png",
     task: "Object Detection",
+    industry: "자동차",
     dataType: "이미지",
     distribution: [
       { label: "Scratch", value: 3200 },
@@ -227,6 +231,11 @@ export const datasets: Dataset[] = [
       { label: "Paint Defect", value: 2450 },
       { label: "Contamination", value: 2100 },
       { label: "Normal", value: 1950 },
+      { label: "test1", value: 0 },
+      { label: "test2", value: 0 },
+      { label: "test3", value: 0 },
+
+
     ],
     storage: {
       type: "Object Storage",
@@ -262,6 +271,8 @@ export const datasets: Dataset[] = [
       { version: "v2.0", date: "2023-12-18", author: "데이터팀", changes: "어노테이션 품질 재검수 및 라벨 정합성 개선" },
       { version: "v1.0", date: "2023-09-05", author: "데이터팀", changes: "초기 데이터셋 릴리스" },
     ],
+    downloads: 1248,
+    stars: 356,
   },
   {
     id: "document-scan",
@@ -279,6 +290,7 @@ export const datasets: Dataset[] = [
     tags: ["OCR", "문서", "텍스트"],
     image: "/images/datasets/doc-dataset.png",
     task: "OCR",
+    industry: "기타",
     dataType: "이미지",
     distribution: [
       { label: "Printed", value: 6120 },
@@ -318,6 +330,8 @@ export const datasets: Dataset[] = [
       { version: "v1.2", date: "2023-11-08", author: "데이터팀", changes: "노이즈 샘플 제거 및 클래스 균형 조정" },
       { version: "v1.0", date: "2023-08-22", author: "데이터팀", changes: "초기 데이터셋 릴리스" },
     ],
+    downloads: 892,
+    stars: 210,
   },
   {
     id: "sensor-logs",
@@ -335,6 +349,7 @@ export const datasets: Dataset[] = [
     tags: ["예지보전", "시계열", "센서"],
     image: "/images/datasets/sensor-dataset.png",
     task: "Anomaly Detection",
+    industry: "기계·장비",
     dataType: "시계열",
     distribution: [
       { label: "Normal", value: 1280 },
@@ -376,6 +391,8 @@ export const datasets: Dataset[] = [
       { version: "v2.0", date: "2023-12-01", author: "데이터팀", changes: "샘플링 주기 표준화 및 결측 구간 보간" },
       { version: "v1.0", date: "2023-09-14", author: "데이터팀", changes: "초기 데이터셋 릴리스" },
     ],
+    downloads: 2140,
+    stars: 185,
   },
   {
     id: "pcb-defect",
@@ -393,6 +410,7 @@ export const datasets: Dataset[] = [
     tags: ["PCB", "Segmentation", "검사"],
     image: "/images/datasets/pcb-dataset.png",
     task: "Segmentation",
+    industry: "전자·반도체",
     dataType: "이미지",
     distribution: [
       { label: "Solder", value: 1400 },
@@ -436,6 +454,8 @@ export const datasets: Dataset[] = [
       { version: "v1.1", date: "2023-11-30", author: "데이터팀", changes: "픽셀 단위 마스크 정밀도 개선" },
       { version: "v1.0", date: "2023-08-30", author: "데이터팀", changes: "초기 데이터셋 릴리스" },
     ],
+    downloads: 630,
+    stars: 140,
   },
 ]
 
