@@ -259,6 +259,8 @@ export const datasets: Dataset[] = [
     sampleImages: [],
     versions: [
       { version: "v2.1", date: "2024-02-10", author: "AI팀", changes: "이물질 클래스 추가" },
+      { version: "v2.0", date: "2023-12-18", author: "데이터팀", changes: "어노테이션 품질 재검수 및 라벨 정합성 개선" },
+      { version: "v1.0", date: "2023-09-05", author: "데이터팀", changes: "초기 데이터셋 릴리스" },
     ],
   },
   {
@@ -313,6 +315,8 @@ export const datasets: Dataset[] = [
     sampleImages: [],
     versions: [
       { version: "v1.4", date: "2024-01-20", author: "AI팀", changes: "손글씨 데이터 추가" },
+      { version: "v1.2", date: "2023-11-08", author: "데이터팀", changes: "노이즈 샘플 제거 및 클래스 균형 조정" },
+      { version: "v1.0", date: "2023-08-22", author: "데이터팀", changes: "초기 데이터셋 릴리스" },
     ],
   },
   {
@@ -369,6 +373,8 @@ export const datasets: Dataset[] = [
     sampleImages: [],
     versions: [
       { version: "v3.0", date: "2024-02-25", author: "AI팀", changes: "전류 채널 추가" },
+      { version: "v2.0", date: "2023-12-01", author: "데이터팀", changes: "샘플링 주기 표준화 및 결측 구간 보간" },
+      { version: "v1.0", date: "2023-09-14", author: "데이터팀", changes: "초기 데이터셋 릴리스" },
     ],
   },
   {
@@ -427,6 +433,8 @@ export const datasets: Dataset[] = [
     sampleImages: [],
     versions: [
       { version: "v1.2", date: "2024-02-05", author: "AI팀", changes: "결함 클래스 확장" },
+      { version: "v1.1", date: "2023-11-30", author: "데이터팀", changes: "픽셀 단위 마스크 정밀도 개선" },
+      { version: "v1.0", date: "2023-08-30", author: "데이터팀", changes: "초기 데이터셋 릴리스" },
     ],
   },
 ]
