@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  AlertCircle,
   ArrowDown,
   ArrowLeft,
   ArrowRight,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react"
 import { useRef, useState } from "react"
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -27,8 +29,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { AasViewer } from "@/components/registry/aas-viewer"
+import type { TreeNode } from "@/lib/aas/aas-types"
+import { parseAasTree } from "@/lib/aas/parse-aas-tree"
 import { frameworks, licenses, taskTypes } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
+
+/** Result of parsing an uploaded AAS file (fully client-side). */
+type AasUpload =
+  | { status: "empty" }
+  | { status: "error"; fileName: string; message: string }
+  | {
+      status: "parsed"
+      fileName: string
+      fileSize: number
+      tree: TreeNode
+    }
 
 const steps = [
   { id: 1, label: "AI Dataset 등록", icon: Database },
@@ -103,13 +119,13 @@ function GroupTitle({
 }
 
 function UploadZone({
-  file,
+  upload,
   onFile,
   onClear,
   label,
 }: {
-  file: string | null
-  onFile: (name: string) => void
+  upload: AasUpload
+  onFile: (file: File) => void
   onClear: () => void
   label: string
 }) {
@@ -117,21 +133,47 @@ function UploadZone({
   const [dragging, setDragging] = useState(false)
 
   function handleFiles(files: FileList | null) {
-    if (files && files.length > 0) onFile(files[0].name)
+    if (files && files.length > 0) onFile(files[0])
   }
 
-  if (file) {
+  if (upload.status !== "empty") {
+    const isError = upload.status === "error"
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-chart-2/40 bg-chart-2/5 p-4">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-chart-2/15 text-chart-2">
-          <FileJson className="size-5" />
+      <div
+        className={cn(
+          "flex items-center gap-3 rounded-xl border p-4",
+          isError
+            ? "border-destructive/40 bg-destructive/5"
+            : "border-chart-2/40 bg-chart-2/5",
+        )}
+      >
+        <span
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-lg",
+            isError
+              ? "bg-destructive/15 text-destructive"
+              : "bg-chart-2/15 text-chart-2",
+          )}
+        >
+          {isError ? (
+            <AlertCircle className="size-5" />
+          ) : (
+            <FileJson className="size-5" />
+          )}
         </span>
         <div className="flex flex-1 flex-col">
-          <span className="text-sm font-medium">{file}</span>
-          <span className="flex items-center gap-1 text-xs text-chart-2">
-            <CheckCircle2 className="size-3.5" />
-            {label} 업로드 완료
-          </span>
+          <span className="text-sm font-medium">{upload.fileName}</span>
+          {isError ? (
+            <span className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="size-3.5" />
+              JSON 파싱 실패
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-xs text-chart-2">
+              <CheckCircle2 className="size-3.5" />
+              {label} 업로드 완료
+            </span>
+          )}
         </div>
         <Button variant="ghost" size="icon" aria-label="파일 제거" onClick={onClear}>
           <X data-icon="inline-start" />
@@ -207,7 +249,9 @@ export function RegisterWorkflow() {
     license: "",
     keywords: "",
   })
-  const [datasetFile, setDatasetFile] = useState<string | null>(null)
+  const [datasetUpload, setDatasetUpload] = useState<AasUpload>({
+    status: "empty",
+  })
 
   const [model, setModel] = useState<ModelForm>({
     title: "",
@@ -220,12 +264,37 @@ export function RegisterWorkflow() {
     license: "",
     keywords: "",
   })
-  const [modelFile, setModelFile] = useState<string | null>(null)
+  const [modelUpload, setModelUpload] = useState<AasUpload>({ status: "empty" })
 
   function goTo(step: number) {
     setActiveStep(step)
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" })
+    }
+  }
+
+  /** Read, JSON.parse and convert the uploaded AAS file — fully client-side. */
+  async function handleAasUpload(
+    file: File,
+    setUpload: (u: AasUpload) => void,
+  ) {
+    try {
+      const text = await file.text()
+      const json = JSON.parse(text)
+      const tree = parseAasTree(json)
+      setUpload({
+        status: "parsed",
+        fileName: file.name,
+        fileSize: file.size,
+        tree,
+      })
+    } catch {
+      setUpload({
+        status: "error",
+        fileName: file.name,
+        message:
+          "AAS JSON 파일을 파싱할 수 없습니다. 올바른 JSON 형식인지 확인한 뒤 다시 업로드해 주세요.",
+      })
     }
   }
 
@@ -408,12 +477,30 @@ export function RegisterWorkflow() {
               description="상세 메타데이터는 업로드 후 백엔드에서 자동으로 처리됩니다."
             />
             <UploadZone
-              file={datasetFile}
-              onFile={setDatasetFile}
-              onClear={() => setDatasetFile(null)}
+              upload={datasetUpload}
+              onFile={(file) => handleAasUpload(file, setDatasetUpload)}
+              onClear={() => setDatasetUpload({ status: "empty" })}
               label="AAS Dataset Submodel"
             />
+
+            {datasetUpload.status === "error" && (
+              <Alert variant="destructive">
+                <AlertCircle />
+                <AlertTitle>AAS JSON을 읽을 수 없습니다</AlertTitle>
+                <AlertDescription>{datasetUpload.message}</AlertDescription>
+              </Alert>
+            )}
           </div>
+
+          {datasetUpload.status === "parsed" && (
+            <div className="border-t border-border pt-6">
+              <AasViewer
+                fileName={datasetUpload.fileName}
+                fileSize={datasetUpload.fileSize}
+                tree={datasetUpload.tree}
+              />
+            </div>
+          )}
 
           <div className="flex items-center justify-end gap-2">
             <Button variant="ghost" onClick={() => goTo(2)}>
@@ -571,12 +658,30 @@ export function RegisterWorkflow() {
               description="상세 메타데이터는 업로드 후 백엔드에서 자동으로 처리됩니다."
             />
             <UploadZone
-              file={modelFile}
-              onFile={setModelFile}
-              onClear={() => setModelFile(null)}
+              upload={modelUpload}
+              onFile={(file) => handleAasUpload(file, setModelUpload)}
+              onClear={() => setModelUpload({ status: "empty" })}
               label="AAS ModelNameplate Submodel"
             />
+
+            {modelUpload.status === "error" && (
+              <Alert variant="destructive">
+                <AlertCircle />
+                <AlertTitle>AAS JSON을 읽을 수 없습니다</AlertTitle>
+                <AlertDescription>{modelUpload.message}</AlertDescription>
+              </Alert>
+            )}
           </div>
+
+          {modelUpload.status === "parsed" && (
+            <div className="border-t border-border pt-6">
+              <AasViewer
+                fileName={modelUpload.fileName}
+                fileSize={modelUpload.fileSize}
+                tree={modelUpload.tree}
+              />
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <Button variant="outline" onClick={() => goTo(1)}>
@@ -630,7 +735,12 @@ export function RegisterWorkflow() {
                 <SummaryRow label="버전" value={dataset.version} />
                 <SummaryRow label="데이터 유형" value={dataset.dataType} />
                 <SummaryRow label="적용 Task" value={dataset.task} />
-                <SummaryRow label="업로드된 Submodel" value={datasetFile ?? ""} />
+                <SummaryRow
+                  label="업로드된 Submodel"
+                  value={
+                    datasetUpload.status !== "empty" ? datasetUpload.fileName : ""
+                  }
+                />
               </div>
             </div>
 
@@ -666,7 +776,12 @@ export function RegisterWorkflow() {
                 <SummaryRow label="버전" value={model.version} />
                 <SummaryRow label="Framework" value={model.framework} />
                 <SummaryRow label="Task" value={model.task} />
-                <SummaryRow label="업로드된 Submodel" value={modelFile ?? ""} />
+                <SummaryRow
+                  label="업로드된 Submodel"
+                  value={
+                    modelUpload.status !== "empty" ? modelUpload.fileName : ""
+                  }
+                />
               </div>
             </div>
           </div>
