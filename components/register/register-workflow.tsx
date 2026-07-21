@@ -561,13 +561,13 @@ export function RegisterWorkflow() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="License">
+              <Field label="라이선스">
                 <Select
                   value={model.license}
                   onValueChange={(v) => setModel({ ...model, license: v as string })}
                 >
                   <SelectTrigger className="h-10 w-full rounded-lg">
-                    <SelectValue placeholder="License 선택" />
+                    <SelectValue placeholder="라이선스 선택" />
                   </SelectTrigger>
                   <SelectContent>
                     {registrationLicenses.map((l) => (
