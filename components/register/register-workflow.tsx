@@ -32,7 +32,7 @@ import {
 import { AasViewer } from "@/components/registry/aas-viewer"
 import type { TreeNode } from "@/lib/aas/aas-types"
 import { parseAasTree } from "@/lib/aas/parse-aas-tree"
-import { dataTypes, frameworks, licenses, taskTypes } from "@/lib/registry-data"
+import { dataTypes, frameworks, taskTypes } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
 
 /** Result of parsing an uploaded AAS file (fully client-side). */
@@ -52,8 +52,6 @@ const steps = [
   { id: 3, label: "등록 내용 확인", icon: Check },
 ]
 
-const learningTypes = ["지도 학습", "비지도 학습", "준지도 학습", "강화 학습"]
-
 type DatasetForm = {
   title: string
   author: string
@@ -72,13 +70,12 @@ type ModelForm = {
   summary: string
   framework: string
   task: string
-  learningType: string
   license: string
   keywords: string
 }
 
-/** Dataset registration exposes only two visibility-style licenses. */
-const datasetLicenses = ["Public", "Internal"] as const
+/** Registration exposes only two visibility-style licenses. */
+const registrationLicenses = ["Public", "Internal"] as const
 
 /* ------------------------------------------------------------------ */
 /* Small building blocks                                               */
@@ -257,12 +254,11 @@ export function RegisterWorkflow() {
   const [model, setModel] = useState<ModelForm>({
     title: "",
     author: "",
-    version: "",
+    version: "v1.0",
     summary: "",
     framework: "",
     task: "",
-    learningType: "",
-    license: "",
+    license: "Internal",
     keywords: "",
   })
   const [modelUpload, setModelUpload] = useState<AasUpload>({ status: "empty" })
@@ -409,23 +405,6 @@ export function RegisterWorkflow() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="적용 Task">
-                <Select
-                  value={dataset.task}
-                  onValueChange={(v) => setDataset({ ...dataset, task: v as string })}
-                >
-                  <SelectTrigger className="h-10 w-full rounded-lg">
-                    <SelectValue placeholder="Task 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {taskTypes.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
               <Field label="라이선스">
                 <Select
                   value={dataset.license}
@@ -435,7 +414,7 @@ export function RegisterWorkflow() {
                     <SelectValue placeholder="라이선스 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    {datasetLicenses.map((l) => (
+                    {registrationLicenses.map((l) => (
                       <SelectItem key={l} value={l}>
                         {l}
                       </SelectItem>
@@ -548,14 +527,6 @@ export function RegisterWorkflow() {
                   placeholder="예: 비전AI팀"
                 />
               </Field>
-              <Field label="버전">
-                <Input
-                  className={inputBase}
-                  value={model.version}
-                  onChange={(e) => setModel({ ...model, version: e.target.value })}
-                  placeholder="예: v2.3"
-                />
-              </Field>
               <Field label="Framework">
                 <Select
                   value={model.framework}
@@ -590,23 +561,6 @@ export function RegisterWorkflow() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Learning Type">
-                <Select
-                  value={model.learningType}
-                  onValueChange={(v) => setModel({ ...model, learningType: v as string })}
-                >
-                  <SelectTrigger className="h-10 w-full rounded-lg">
-                    <SelectValue placeholder="Learning Type 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {learningTypes.map((l) => (
-                      <SelectItem key={l} value={l}>
-                        {l}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
               <Field label="License">
                 <Select
                   value={model.license}
@@ -616,7 +570,7 @@ export function RegisterWorkflow() {
                     <SelectValue placeholder="License 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    {licenses.map((l) => (
+                    {registrationLicenses.map((l) => (
                       <SelectItem key={l} value={l}>
                         {l}
                       </SelectItem>
