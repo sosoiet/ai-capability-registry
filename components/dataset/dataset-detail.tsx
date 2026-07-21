@@ -189,7 +189,7 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
                     />
                     <InfoRow label="데이터셋 이름" value={dataset.name} />
                     <InfoRow label="버전" value={dataset.version} />
-                    <InfoRow label="Task 유형" value={dataset.task} />
+                    <InfoRow label="Task" value={dataset.task} />
                     <InfoRow label="생성일" value={dataset.createdAt} />
                     <InfoRow label="라이선스" value={dataset.license} />
                     <InfoRow

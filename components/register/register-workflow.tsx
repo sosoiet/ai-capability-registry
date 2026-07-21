@@ -550,7 +550,7 @@ export function RegisterWorkflow() {
                   onValueChange={(v) => setModel({ ...model, task: v as string })}
                 >
                   <SelectTrigger className="h-10 w-full rounded-lg">
-                    <SelectValue placeholder="Task 선택" />
+                    <SelectValue placeholder="Task 선택 />
                   </SelectTrigger>
                   <SelectContent>
                     {taskTypes.map((t) => (
@@ -561,7 +561,7 @@ export function RegisterWorkflow() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="License">
+              <Field label="라이선스>
                 <Select
                   value={model.license}
                   onValueChange={(v) => setModel({ ...model, license: v as string })}
