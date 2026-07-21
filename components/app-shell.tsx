@@ -15,7 +15,7 @@ const nav = [
   { label: "AI Asset Pairs", href: "/pairs", icon: Link2 },
   { label: "AI Dataset", href: "/datasets", icon: Database },
   { label: "AI Model", href: "/models", icon: Boxes },
-  { label: "AI 등록", href: "/register", icon: FilePlus2 },
+  { label: "AI 자산 등록", href: "/register", icon: FilePlus2 },
   { label: "Admin", href: "/admin", icon: ShieldCheck },
 ]
 
