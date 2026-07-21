@@ -18,7 +18,7 @@ export default function RegisterPage() {
             AI 자산 등록
           </h1>
           <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground text-pretty md:text-base">
-            AI 데이터셋과 AI ModelNameplate의 기본 정보를 입력하고, 각 AAS Submodel 파일을
+            AI Dataset과 AI ModelNameplate의 기본 정보를 입력하고, 각 AAS Submodel 파일을
             업로드하세요. 상세 메타데이터는 업로드 후 자동으로 추출됩니다.
           </p>
         </div>
