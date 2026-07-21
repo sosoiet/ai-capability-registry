@@ -1,6 +1,6 @@
 "use client"
 
-import { Boxes, Database, FilePlus2, Home, Layers, Link2, Menu, Sparkles } from "lucide-react"
+import { Boxes, Database, FilePlus2, Home, Layers, Link2, Menu, ShieldCheck, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -16,6 +16,7 @@ const nav = [
   { label: "AI Dataset", href: "/datasets", icon: Database },
   { label: "AI Model", href: "/models", icon: Boxes },
   { label: "AI 등록", href: "/register", icon: FilePlus2 },
+  { label: "Admin", href: "/admin", icon: ShieldCheck },
 ]
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
