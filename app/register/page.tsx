@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { RegisterWorkflow } from "@/components/register/register-workflow"
 
 export const metadata: Metadata = {
-  title: "AI 등록 — AI Model Registry",
+  title: "AI 자산 등록 — AI Model Registry",
   description:
     "AI 데이터셋과 AI ModelNameplate의 기본 정보를 입력하고 AAS Submodel 파일을 업로드하여 레지스트리에 등록하세요.",
 }
