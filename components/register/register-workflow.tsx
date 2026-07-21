@@ -498,7 +498,7 @@ export function RegisterWorkflow() {
             <div className="flex flex-col">
               <h2 className="text-lg font-semibold">AI ModelNameplate 등록</h2>
               <p className="text-sm text-muted-foreground">
-                기본 정보를 입력하고 ModelNameplate AAS Submodel 파일을 업로드하세요.
+                기본 정보를 입력하고 AAS Submodel 파일을 업로드하세요.
               </p>
             </div>
           </div>
