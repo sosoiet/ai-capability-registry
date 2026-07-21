@@ -32,7 +32,7 @@ import {
 import { AasViewer } from "@/components/registry/aas-viewer"
 import type { TreeNode } from "@/lib/aas/aas-types"
 import { parseAasTree } from "@/lib/aas/parse-aas-tree"
-import { frameworks, licenses, taskTypes } from "@/lib/registry-data"
+import { dataTypes, frameworks, licenses, taskTypes } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
 
 /** Result of parsing an uploaded AAS file (fully client-side). */
@@ -77,7 +77,8 @@ type ModelForm = {
   keywords: string
 }
 
-const dataTypes = ["이미지", "시계열", "정형 (Tabular)", "텍스트", "포인트 클라우드"]
+/** Dataset registration exposes only two visibility-style licenses. */
+const datasetLicenses = ["Public", "Internal"] as const
 
 /* ------------------------------------------------------------------ */
 /* Small building blocks                                               */
@@ -242,11 +243,11 @@ export function RegisterWorkflow() {
   const [dataset, setDataset] = useState<DatasetForm>({
     title: "",
     author: "",
-    version: "",
+    version: "v1.0",
     summary: "",
     dataType: "",
     task: "",
-    license: "",
+    license: "Internal",
     keywords: "",
   })
   const [datasetUpload, setDatasetUpload] = useState<AasUpload>({
@@ -391,14 +392,6 @@ export function RegisterWorkflow() {
                   placeholder="예: 제조혁신팀"
                 />
               </Field>
-              <Field label="버전">
-                <Input
-                  className={inputBase}
-                  value={dataset.version}
-                  onChange={(e) => setDataset({ ...dataset, version: e.target.value })}
-                  placeholder="예: v1.2"
-                />
-              </Field>
               <Field label="데이터 유형">
                 <Select
                   value={dataset.dataType}
@@ -442,7 +435,7 @@ export function RegisterWorkflow() {
                     <SelectValue placeholder="라이선스 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    {licenses.map((l) => (
+                    {datasetLicenses.map((l) => (
                       <SelectItem key={l} value={l}>
                         {l}
                       </SelectItem>
