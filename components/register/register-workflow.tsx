@@ -496,7 +496,7 @@ export function RegisterWorkflow() {
               <Cpu className="size-5" />
             </span>
             <div className="flex flex-col">
-              <h2 className="text-lg font-semibold">AI ModelNameplate 등록 (선택)</h2>
+              <h2 className="text-lg font-semibold">AI ModelNameplate 등록</h2>
               <p className="text-sm text-muted-foreground">
                 기본 정보를 입력하고 ModelNameplate AAS Submodel 파일을 업로드하세요.
               </p>
@@ -508,7 +508,7 @@ export function RegisterWorkflow() {
             <GroupTitle
               step="기본 정보"
               title="Basic Information"
-              description="Hyperparameters, Training Results, Inputs/Outputs 등은 AAS Submodel에서 자동 추출됩니다."
+              description="상세 기술 메타데이터는 업로드한 AAS Submodel에서 자동으로 추출됩니다."
             />
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="제목">
