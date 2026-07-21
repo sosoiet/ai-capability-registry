@@ -114,7 +114,7 @@ function DimensionTable({ rows }: { rows: { dim: number; size: string; info: str
         <thead>
           <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
             <th className="px-3 py-2 font-medium">항목</th>
-            <th className="px-3 py-2 font-medium">크기</th>
+            <th className="px-3 py-2 font-medium">차원</th>
             <th className="px-3 py-2 font-medium">의미</th>
           </tr>
         </thead>
@@ -231,19 +231,11 @@ export function ModelDetail({ model }: { model: Model }) {
   ]
 
   // Task-appropriate headline metric shown in the header.
-  const metricLabel = primaryMetricLabel(model.task)
-  const metricValue =
-    model.task === "OCR"
-      ? (1 - model.accuracy / 100).toFixed(3)
-      : (model.accuracy / 100).toFixed(3)
-
-  // Deterministic engagement numbers (no such field on the model).
   const seed = hashString(model.id)
   const downloads = 1500 + (seed % 8000)
   const favorites = 60 + (seed % 400)
 
   const headerStats = [
-    { label: metricLabel, value: metricValue, accent: true },
     { label: "다운로드", value: formatCompact(downloads) },
     { label: "즐겨찾기", value: String(favorites) },
   ]
@@ -270,7 +262,7 @@ export function ModelDetail({ model }: { model: Model }) {
           </>
         }
         stats={headerStats}
-        primaryAction={{ label: "Deploy", icon: Cpu }}
+        primaryAction={{ label: "Download", icon: Cpu }}
         actions={
           <AasActions
             entityId={model.id}
@@ -300,15 +292,14 @@ export function ModelDetail({ model }: { model: Model }) {
         </div>
         {/* ---------------------------- TAB 1: 개요 ---------------------------- */}
         <TabsContent value="overview">
-          <Card>
-            <CardContent className="flex flex-col p-0">
+          <div className="flex flex-col gap-6">
               {/* Row 1: 모델 설명 | 학습 성능 */}
-              <div className="grid grid-cols-1 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
                 {/* 모델 설명 */}
-                <div className="flex min-h-[280px] flex-col p-6 md:p-8">
+                <div className="flex min-h-[280px] flex-col rounded-3xl border border-border bg-card p-6 md:p-8">
                   <SectionTitle icon={Target}>모델 설명</SectionTitle>
 
-                  <p className="mt-5 text-sm leading-6 text-muted-foreground text-pretty">
+                  <p className="mt-5 text-base leading-7 text-muted-foreground text-pretty">
                     자동차 생산 라인에서 촬영한 차량 이미지를 분석해 스크래치, 덴트,
                     도장 불량 등 외관 결함을 자동으로 검출하는 모델입니다. 육안 검사에
                     의존하던 외관 품질 확인을 자동화해 검사 속도와 일관성을 높입니다.
@@ -325,12 +316,12 @@ export function ModelDetail({ model }: { model: Model }) {
                             <item.icon className="size-3.5" />
                           </span>
 
-                          <span className="text-xs font-medium text-foreground">
+                          <span className="text-sm font-medium text-foreground">
                             {item.label}
                           </span>
                         </div>
 
-                        <p className="pl-8 text-xs leading-5 text-muted-foreground text-pretty">
+                        <p className="pl-8 text-sm leading-5 text-muted-foreground text-pretty">
                           {item.value}
                         </p>
                       </div>
@@ -339,7 +330,7 @@ export function ModelDetail({ model }: { model: Model }) {
                 </div>
 
                 {/* 학습 성능 */}
-                <div className="flex min-h-[280px] flex-col border-t border-border p-6 md:p-8 lg:border-l lg:border-t-0">
+                <div className="flex min-h-[280px] flex-col rounded-3xl border border-border bg-card p-6 md:p-8">
                   <SectionTitle icon={TrendingUp}>학습 성능</SectionTitle>
 
                   <div className="mt-5 grid flex-1 grid-cols-2 grid-rows-2">
@@ -368,9 +359,9 @@ export function ModelDetail({ model }: { model: Model }) {
               <Separator />
 
               {/* Row 2: 학습 데이터셋 | 지원 환경 */}
-              <div className="grid grid-cols-1 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
                 {/* 학습 데이터셋 */}
-                <div className="flex min-h-[280px] flex-col p-6 md:p-8">
+                <div className="flex min-h-[280px] flex-col rounded-3xl border border-border bg-card p-6 md:p-8">
                   <SectionTitle icon={Database}>학습 데이터셋</SectionTitle>
                   {dataset ? (
                     <>
@@ -445,7 +436,7 @@ export function ModelDetail({ model }: { model: Model }) {
                 </div>
 
                 {/* 지원 환경 */}
-                <div className="flex min-h-[280px] flex-col border-t border-border p-6 md:p-8 lg:border-l lg:border-t-0">
+                <div className="flex min-h-[280px] flex-col rounded-3xl border border-border bg-card p-6 md:p-8">
                   <SectionTitle icon={Server}>지원 환경</SectionTitle>
 
                   <div className="mt-5 flex flex-col gap-5">
@@ -487,12 +478,10 @@ export function ModelDetail({ model }: { model: Model }) {
                 </div>
               </div>
 
-              <Separator />
-
               {/* Row 3: 입력 (Input) | 출력 (Output) */}
-              <div className="relative grid grid-cols-1 lg:grid-cols-2">
+              <div className="hidden">
                 {/* Input */}
-                <div className="flex min-h-[300px] flex-col p-6 md:p-8">
+                <div className="flex min-h-[300px] flex-col rounded-3xl border border-border bg-card p-6 md:p-8">
                   <div className="flex items-center gap-2">
                     <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <ArrowDownToLine className="size-4" />
@@ -530,7 +519,7 @@ export function ModelDetail({ model }: { model: Model }) {
                 </span>
 
                 {/* Output */}
-                <div className="flex min-h-[300px] flex-col border-t border-border p-6 md:p-8 lg:border-l lg:border-t-0">
+                <div className="flex min-h-[300px] flex-col rounded-3xl border border-border bg-card p-6 md:p-8">
                   <div className="flex items-center gap-2">
                     <span className="flex size-7 items-center justify-center rounded-lg bg-chart-2/10 text-chart-2">
                       <ArrowUpFromLine className="size-4" />
@@ -564,8 +553,7 @@ export function ModelDetail({ model }: { model: Model }) {
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
         </TabsContent>
 
         {/* ----------------------- TAB 2: 모델 세부 사항 ----------------------- */}
@@ -596,47 +584,51 @@ export function ModelDetail({ model }: { model: Model }) {
               </div>
 
               {/* Row 1: 입력 정보 | 출력 정보 */}
-              <div className="grid grid-cols-1 lg:grid-cols-2">
-                {/* 입력 정보 */}
-                <div className="flex min-h-[300px] flex-col gap-5 p-6 md:p-8">
-                  <SectionTitle icon={ArrowDownToLine}>입력 정보</SectionTitle>
+              <div className="overflow-hidden rounded-3xl border border-border bg-card">
+                <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1fr_1px_1fr]">
+                  <div className="min-h-[300px] p-6 md:p-8">
+                    <SectionTitle icon={ArrowDownToLine}>입력 정보</SectionTitle>
 
-                  <div className="flex flex-col divide-y divide-border/60">
-                    <SpecRow label="입력 형태" value={dataset?.dataType ?? model.dataType} />
-                    <SpecRow label="데이터 명" value={dataset?.name ?? "—"} />
+                    <div className="mt-5 flex flex-col divide-y divide-border/60">
+                      <SpecRow label="입력 형태" value={dataset?.dataType ?? model.dataType} />
+                      <SpecRow label="데이터 명" value={dataset?.name ?? "—"} />
+                    </div>
+
+                    <div className="mt-6">
+                      <DimensionTable rows={inputDimRows} />
+                    </div>
                   </div>
 
-                  <DimensionTable rows={inputDimRows} />
-                </div>
+                  <div className="hidden bg-border lg:block" />
 
-                {/* 출력 정보 */}
-                <div className="flex min-h-[300px] flex-col gap-5 border-t border-border p-6 md:p-8 lg:border-l lg:border-t-0">
-                  <SectionTitle icon={ArrowUpFromLine}>출력 정보</SectionTitle>
+                  <div className="min-h-[300px] p-6 md:p-8">
+                    <SectionTitle icon={ArrowUpFromLine}>출력 정보</SectionTitle>
 
-                  <div className="flex flex-col divide-y divide-border/60">
-                    <SpecRow label="출력 형태" value={model.outputFormat} />
-                    <SpecRow label="출력 항목" value={model.outputItems.join(" / ")} />
-                  </div>
+                    <div className="mt-5 flex flex-col divide-y divide-border/60">
+                      <SpecRow label="출력 형태" value={model.outputFormat} />
+                      <SpecRow label="출력 항목" value={model.outputItems.join(" / ")} />
+                    </div>
 
-                  <div className="overflow-hidden rounded-xl border border-border">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
-                          <th className="px-3 py-2 font-medium">항목</th>
-                          <th className="px-3 py-2 font-medium">Size</th>
-                          <th className="px-3 py-2 font-medium">Result</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {model.outputs.map((output) => (
-                          <tr key={output.name} className="border-b border-border/60 last:border-0">
-                            <td className="px-3 py-2 font-mono text-xs font-medium">{output.name}</td>
-                            <td className="px-3 py-2 font-mono text-xs">{output.shape}</td>
-                            <td className="px-3 py-2 text-muted-foreground">{output.description}</td>
+                    <div className="mt-6 overflow-hidden rounded-xl border border-border">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
+                            <th className="px-3 py-2 font-medium">항목</th>
+                            <th className="px-3 py-2 font-medium">차원</th>
+                            <th className="px-3 py-2 font-medium">결과</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {model.outputs.map((output) => (
+                            <tr key={output.name} className="border-b border-border/60 last:border-0">
+                              <td className="px-3 py-2 font-mono text-xs font-medium">{output.name}</td>
+                              <td className="px-3 py-2 font-mono text-xs">{output.shape}</td>
+                              <td className="px-3 py-2 text-muted-foreground">{output.description}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -716,7 +708,7 @@ export function ModelDetail({ model }: { model: Model }) {
         {/* ----------------------- TAB 3: 버전 히스토리 ----------------------- */}
         <TabsContent value="history">
           <Card className="overflow-hidden">
-            <CardContent className="grid grid-cols-1 p-0 lg:grid-cols-2">
+            <CardContent className="grid grid-cols-1 p-0 lg:grid-cols-[1fr_1px_1fr]">
               {/* 모델 트리 */}
               <div className="flex min-h-[420px] flex-col gap-5 p-6 md:p-8">
                 <SectionTitle icon={GitBranch}>모델 트리</SectionTitle>
@@ -727,8 +719,10 @@ export function ModelDetail({ model }: { model: Model }) {
                 )}
               </div>
 
+              <div className="hidden lg:block bg-border" />
+
               {/* 버전 관리 정보 */}
-              <div className="flex min-h-[420px] flex-col gap-5 border-t border-border p-6 md:p-8 lg:border-l lg:border-t-0">
+              <div className="flex min-h-[420px] flex-col gap-5 p-6 md:p-8">
                 <SectionTitle icon={History}>버전 관리</SectionTitle>
 
                 <div className="flex flex-col divide-y divide-border/60">

@@ -145,10 +145,10 @@ export function DetailHeader({
           )}
         </div>
 
-        {/* 오른쪽: 액션 버튼 및 통계 */}
-        <div className="flex min-w-0 flex-col">
-          {/* 액션 버튼 */}
-          <div className="flex flex-wrap items-center justify-start gap-2 md:justify-end">
+        {/* 오른쪽: 상단 AAS 액션 + 즐겨찾기, 하단 통계 + Deploy */}
+        <div className="flex min-w-0 flex-col justify-between gap-5">
+          {/* 상단 액션 */}
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {actions}
 
             <Button
@@ -165,6 +165,7 @@ export function DetailHeader({
                     : "즐겨찾기에 추가했습니다",
                 )
               }}
+              className="h-12 w-12"
             >
               <Star
                 className={cn(
@@ -173,60 +174,60 @@ export function DetailHeader({
                 )}
               />
             </Button>
-
-            {primaryAction && PrimaryIcon && (
-              <Button
-                onClick={() =>
-                  toast.info(`${primaryAction.label} 요청을 시작했습니다`)
-                }
-              >
-                <PrimaryIcon data-icon="inline-start" />
-                {primaryAction.label}
-              </Button>
-            )}
           </div>
 
-          {/* 다운로드 수 / 즐겨찾기 수 */}
-          {stats && stats.length > 0 && (
-            <div className="flex flex-1 items-center justify-center py-5 md:py-0">
-              <div className="flex items-center justify-center">
-                {stats.map((stat, index) => {
-                  const StatIcon = stat.label.includes("다운로드")
-                    ? Download
-                    : Star
+          {/* 하단: 다운로드 수 / 즐겨찾기 수 / Deploy 한 줄 정렬 */}
+          <div className="flex items-center justify-end gap-0">
+            {stats?.[0] && (
+              <div className="flex min-w-32 items-center justify-center gap-3 px-4">
+                <Download className="size-6 shrink-0 text-primary" />
 
-                  return (
-                    <div key={stat.label} className="flex items-center">
-                      {index > 0 && (
-                        <div className="mx-6 h-12 w-px shrink-0 bg-border" />
-                      )}
-
-                      <div className="flex min-w-32 items-center justify-center gap-3">
-                        <StatIcon className="size-5 shrink-0 text-primary" />
-
-                        <div>
-                          <p
-                            className={cn(
-                              "text-xl font-semibold leading-none tabular-nums",
-                              stat.accent
-                                ? "text-primary"
-                                : "text-foreground",
-                            )}
-                          >
-                            {stat.value}
-                          </p>
-
-                          <p className="mt-1.5 whitespace-nowrap text-xs text-muted-foreground">
-                            {stat.label}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+                <div className="text-center">
+                  <p className="text-2xl font-semibold leading-none tabular-nums">
+                    {stats[0].value}
+                  </p>
+                  <p className="mt-1.5 whitespace-nowrap text-xs text-muted-foreground">
+                    {stats[0].label}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {stats?.[1] && (
+              <>
+                <div className="h-14 w-px shrink-0 bg-border" />
+
+                <div className="flex min-w-32 items-center justify-center gap-3 px-4">
+                  <Star className="size-6 shrink-0 text-primary" />
+
+                  <div>
+                    <p className="text-2xl font-semibold leading-none tabular-nums">
+                      {stats[1].value}
+                    </p>
+                    <p className="mt-1.5 whitespace-nowrap text-xs text-muted-foreground">
+                      {stats[1].label}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {primaryAction && PrimaryIcon && (
+              <>
+                <div className="h-14 w-px shrink-0 bg-border" />
+
+                <Button
+                  className="ml-5 h-16 rounded-2xl px-6 text-base"
+                  onClick={() =>
+                    toast.info(`${primaryAction.label} 요청을 시작했습니다`)
+                  }
+                >
+                  <PrimaryIcon className="size-5" />
+                  {primaryAction.label}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

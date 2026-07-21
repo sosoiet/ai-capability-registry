@@ -8,6 +8,7 @@ import {
   Camera,
   CircleCheck,
   CircleSlash,
+  Cpu,
   Database,
   HardDrive,
   Info,
@@ -120,9 +121,10 @@ export function DatasetDetail({ dataset }: { dataset: Dataset }) {
           </>
         }
         stats={[
-          { label: "다운로드 수", value: dataset.downloads.toLocaleString() },
-          { label: "즐겨찾기 수", value: dataset.stars.toLocaleString() },
+          { label: "다운로드", value: dataset.downloads.toLocaleString() },
+          { label: "즐겨찾기", value: dataset.stars.toLocaleString() },
         ]}
+        primaryAction={{ label: "Download", icon: Cpu }}
         actions={
           <AasActions
             entityId={dataset.id}
