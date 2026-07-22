@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 
+import { SidebarAuth } from "@/components/auth/sidebar-auth"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -86,6 +87,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           전문 지식 없이도 모델의 목적과 결과를 직관적으로 이해할 수 있습니다.
         </p>
       </div>
+      <SidebarAuth />
     </div>
   )
 }
