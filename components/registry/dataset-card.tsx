@@ -9,9 +9,11 @@ import { TaskBadge } from "@/components/registry/task-badge"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { getModelsByDataset, getTaskThumbnail, type Dataset } from "@/lib/registry-data"
+import { datasetMetaChips } from "@/lib/registry-facets"
 
 export function DatasetCard({ dataset, index = 0 }: { dataset: Dataset; index?: number }) {
   const usedBy = getModelsByDataset(dataset.id).length
+  const chips = datasetMetaChips(dataset)
 
   return (
     <motion.div
@@ -48,6 +50,13 @@ export function DatasetCard({ dataset, index = 0 }: { dataset: Dataset; index?: 
             <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
               {dataset.description}
             </p>
+            <div className="flex flex-wrap gap-1.5">
+              {chips.map((chip) => (
+                <Badge key={chip} variant="secondary" className="font-normal">
+                  {chip}
+                </Badge>
+              ))}
+            </div>
             <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <Images className="size-4 text-primary" />
