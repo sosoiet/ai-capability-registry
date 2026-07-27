@@ -49,7 +49,7 @@ export function ModelCard({ model, index = 0 }: { model: Model; index?: number }
               {model.description}
             </p>
             <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3 text-sm">
-              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+              <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-muted-foreground">
                 <Target className="size-4 text-primary" />
                 <span className="font-medium text-foreground">{model.accuracy}%</span>
                 정확도

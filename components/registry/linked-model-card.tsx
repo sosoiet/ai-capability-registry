@@ -23,7 +23,7 @@ export function LinkedModelCard({ model }: { model: Model }) {
           </Badge>
         </div>
         <span className="truncate font-medium text-foreground">{model.name}</span>
-        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
           <Target className="size-3.5 text-primary" />
           정확도 {model.accuracy}%
         </span>
