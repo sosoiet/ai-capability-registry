@@ -5,12 +5,7 @@
 // hash of the item id so distributions look natural and filtering stays
 // consistent across renders.
 
-import {
-  getDataset,
-  getModelsByDataset,
-  type Dataset,
-  type Model,
-} from "./registry-data"
+import { getDataset, type Dataset, type Model } from "./registry-data"
 
 /* ------------------------------------------------------------------ */
 /* Deterministic helpers                                               */
@@ -96,11 +91,6 @@ export const datasetFilterGroups = [
     ],
   },
   {
-    id: "labelStatus",
-    label: "Label Status",
-    options: ["Labeled", "Unlabeled", "Partially Labeled"],
-  },
-  {
     id: "fileFormat",
     label: "File Format",
     options: ["JPG", "PNG", "CSV", "JSON", "Parquet", "TXT"],
@@ -109,11 +99,6 @@ export const datasetFilterGroups = [
     id: "access",
     label: "Access Level",
     options: ["Public", "Restricted", "Private"],
-  },
-  {
-    id: "linked",
-    label: "Linked Model",
-    options: ["Linked", "Not Linked"],
   },
 ] as const
 
@@ -130,11 +115,6 @@ function datasetDomain(d: Dataset): string {
     default:
       return "Manufacturing"
   }
-}
-
-function datasetLabelStatus(d: Dataset): string {
-  if (!d.labeled) return "Unlabeled"
-  return hashStr(`${d.id}-label`) % 4 === 0 ? "Partially Labeled" : "Labeled"
 }
 
 function datasetFileFormats(d: Dataset): string[] {
@@ -169,38 +149,19 @@ function datasetTaskValues(d: Dataset): string[] {
   return uniq(values)
 }
 
-export function datasetIsLinked(d: Dataset): boolean {
-  return getModelsByDataset(d.id).length > 0
-}
-
 /** Facet values for a dataset, keyed by filter group id. */
 export function datasetFacetValues(d: Dataset): Record<string, string[]> {
   return {
     task: datasetTaskValues(d),
     dataType: datasetDataTypeValues(d),
     domain: [datasetDomain(d)],
-    labelStatus: [datasetLabelStatus(d)],
     fileFormat: datasetFileFormats(d),
     access: [accessLevel(d.license, d.id)],
-    linked: [datasetIsLinked(d) ? "Linked" : "Not Linked"],
   }
-}
-
-/** Small metadata chips shown on a dataset card. */
-export function datasetMetaChips(d: Dataset): string[] {
-  const eng = datasetDataTypeValues(d)[0] ?? "Image"
-  const label = datasetLabelStatus(d)
-  const formats = datasetFileFormats(d).slice(0, 2).join("/")
-  const access = accessLevel(d.license, d.id)
-  return uniq([eng, label, formats, access])
 }
 
 export function datasetSampleCount(d: Dataset): number {
   return Number(d.totalSamples.replace(/[^0-9]/g, "")) || 0
-}
-
-export function datasetLinkedCount(d: Dataset): number {
-  return getModelsByDataset(d.id).length
 }
 
 /* ------------------------------------------------------------------ */
@@ -229,21 +190,6 @@ export const modelFilterGroups = [
     id: "framework",
     label: "Framework",
     options: ["PyTorch", "TensorFlow", "ONNX", "scikit-learn", "Transformers"],
-  },
-  {
-    id: "architecture",
-    label: "Architecture",
-    options: ["YOLO", "CNN", "LSTM", "Transformer", "Random Forest", "XGBoost"],
-  },
-  {
-    id: "metric",
-    label: "Performance Metric",
-    options: ["Accuracy", "F1-score", "mAP@50", "RMSE", "MAE", "AUC"],
-  },
-  {
-    id: "deployment",
-    label: "Deployment Target",
-    options: ["Cloud", "Edge", "On-premise", "Docker"],
   },
   {
     id: "access",
@@ -282,30 +228,6 @@ function modelFrameworkValues(m: Model): string[] {
   return uniq(values)
 }
 
-function modelMetricValues(m: Model): string[] {
-  const values = ["Accuracy", "F1-score"]
-  const names = m.metrics.map((x) => x.name.toLowerCase()).join(" ")
-  if (/map/.test(names) || m.task === "Object Detection" || m.task === "Segmentation") {
-    values.push("mAP@50")
-  }
-  if (/auc|roc/.test(names) || m.task === "Anomaly Detection") values.push("AUC")
-  if (m.task === "Anomaly Detection") values.push("RMSE", "MAE")
-  return uniq(values)
-}
-
-function modelDeploymentValues(m: Model): string[] {
-  const values: string[] = []
-  for (const env of m.supportedEnv) {
-    if (/jetson|edge/i.test(env)) values.push("Edge")
-    if (/server|on-?prem|factory/i.test(env)) values.push("On-premise")
-    if (/onnx|docker|runtime|container/i.test(env)) values.push("Docker")
-    if (/cloud|aws|gcp|azure/i.test(env)) values.push("Cloud")
-  }
-  if (m.featured) values.push("Cloud")
-  if (values.length === 0) values.push("On-premise")
-  return uniq(values)
-}
-
 function modelAccessLevel(m: Model): string {
   const ds = getDataset(m.datasetId)
   return accessLevel(ds?.license ?? "Public", m.id)
@@ -315,31 +237,12 @@ function modelInputTypeValues(m: Model): string[] {
   return dataTypeToEnglish(m.dataType)
 }
 
-/** Primary headline metric for a model card (task-dependent). */
-export function modelPrimaryMetric(m: Model): { label: string; value: string } {
-  switch (m.task) {
-    case "Anomaly Detection":
-      return { label: "AUC", value: (0.9 + m.f1 / 1000).toFixed(3) }
-    case "Segmentation":
-      return { label: "mIoU", value: (m.accuracy / 100).toFixed(3) }
-    case "OCR":
-      return { label: "CER", value: (1 - m.accuracy / 100).toFixed(3) }
-    case "Classification":
-      return { label: "Accuracy", value: (m.accuracy / 100).toFixed(3) }
-    default:
-      return { label: "mAP@50", value: (m.accuracy / 100).toFixed(3) }
-  }
-}
-
 /** Facet values for a model, keyed by filter group id. */
 export function modelFacetValues(m: Model): Record<string, string[]> {
   return {
     task: [m.task as string],
     inputType: modelInputTypeValues(m),
     framework: modelFrameworkValues(m),
-    architecture: modelArchitectureValues(m),
-    metric: modelMetricValues(m),
-    deployment: modelDeploymentValues(m),
     access: [modelAccessLevel(m)],
   }
 }
@@ -356,13 +259,4 @@ export function modelStats(m: Model): { downloads: number; usage: number; likes:
 
 export function modelDate(m: Model): string {
   return m.versions?.[0]?.date ?? ""
-}
-
-/** Small metadata chips shown on a model card. */
-export function modelMetaChips(m: Model): string[] {
-  const framework = modelFrameworkValues(m)[0]
-  const arch = modelArchitectureValues(m)[0]
-  const input = modelInputTypeValues(m)[0]
-  const access = modelAccessLevel(m)
-  return uniq([framework, arch, input, access])
 }

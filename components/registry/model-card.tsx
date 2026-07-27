@@ -9,12 +9,9 @@ import { TaskBadge } from "@/components/registry/task-badge"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { getDataset, getTaskThumbnail, type Model } from "@/lib/registry-data"
-import { modelMetaChips, modelPrimaryMetric } from "@/lib/registry-facets"
 
 export function ModelCard({ model, index = 0 }: { model: Model; index?: number }) {
   const dataset = getDataset(model.datasetId)
-  const chips = modelMetaChips(model)
-  const metric = modelPrimaryMetric(model)
 
   return (
     <motion.div
@@ -51,16 +48,6 @@ export function ModelCard({ model, index = 0 }: { model: Model; index?: number }
             <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
               {model.description}
             </p>
-            <div className="flex flex-wrap gap-1.5">
-              {chips.map((chip) => (
-                <Badge key={chip} variant="secondary" className="font-normal">
-                  {chip}
-                </Badge>
-              ))}
-              <Badge variant="outline" className="font-mono font-normal text-primary">
-                {metric.label} {metric.value}
-              </Badge>
-            </div>
             <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-3 text-sm">
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                 <Target className="size-4 text-primary" />

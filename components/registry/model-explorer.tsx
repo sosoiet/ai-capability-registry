@@ -10,9 +10,7 @@ import { modelDate, modelFacetValues, modelFilterGroups, modelStats } from "@/li
 const sortOptions: SortOption[] = [
   { key: "latest", label: "최신순" },
   { key: "performance", label: "성능순" },
-  { key: "downloads", label: "다운로드순" },
   { key: "usage", label: "사용량순" },
-  { key: "likes", label: "좋아요순" },
 ]
 
 export function ModelExplorer() {
@@ -29,14 +27,8 @@ export function ModelExplorer() {
       case "performance":
         sorted.sort((a, b) => b.accuracy - a.accuracy)
         break
-      case "downloads":
-        sorted.sort((a, b) => modelStats(b).downloads - modelStats(a).downloads)
-        break
       case "usage":
         sorted.sort((a, b) => modelStats(b).usage - modelStats(a).usage)
-        break
-      case "likes":
-        sorted.sort((a, b) => modelStats(b).likes - modelStats(a).likes)
         break
       default:
         sorted.sort((a, b) => modelDate(b).localeCompare(modelDate(a)))

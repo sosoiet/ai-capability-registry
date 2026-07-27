@@ -8,15 +8,13 @@ import { datasets, type Dataset } from "@/lib/registry-data"
 import {
   datasetFacetValues,
   datasetFilterGroups,
-  datasetLinkedCount,
   datasetSampleCount,
 } from "@/lib/registry-facets"
 
 const sortOptions: SortOption[] = [
   { key: "latest", label: "최신순" },
-  { key: "samples", label: "샘플 많은순" },
-  { key: "linked", label: "모델 연계 많은순" },
-  { key: "downloads", label: "다운로드순" },
+  { key: "performance", label: "성능순" },
+  { key: "usage", label: "사용량순" },
 ]
 
 export function DatasetExplorer() {
@@ -29,13 +27,10 @@ export function DatasetExplorer() {
   const sortItems = useCallback((items: Dataset[], key: string) => {
     const sorted = [...items]
     switch (key) {
-      case "samples":
+      case "performance":
         sorted.sort((a, b) => datasetSampleCount(b) - datasetSampleCount(a))
         break
-      case "linked":
-        sorted.sort((a, b) => datasetLinkedCount(b) - datasetLinkedCount(a))
-        break
-      case "downloads":
+      case "usage":
         sorted.sort((a, b) => b.downloads - a.downloads)
         break
       default:
