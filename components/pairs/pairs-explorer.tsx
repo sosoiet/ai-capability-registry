@@ -121,7 +121,7 @@ export function PairsExplorer() {
         <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 ring-1 ring-foreground/5 md:p-5">
           <div className="flex items-center gap-1.5 text-sm font-medium">
             <SlidersHorizontal className="size-4 text-primary" />
-            Asset Pair 필터
+            모델 필터
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
