@@ -5,7 +5,7 @@ import { RegisterWorkflow } from "@/components/register/register-workflow"
 export const metadata: Metadata = {
   title: "AI 자산 등록 — AI Model Registry",
   description:
-    "AI 데이터셋과 AI ModelNameplate의 기본 정보를 입력하고 AAS Submodel 파일을 업로드하여 레지스트리에 등록하세요.",
+    "통합 AAS 파일을 업로드하거나 외부 연동으로 가져오면 AI Dataset과 AI ModelNameplate를 자동 분류하고 메타데이터를 추출하여 레지스트리에 등록합니다.",
 }
 
 export default function RegisterPage() {
@@ -18,10 +18,10 @@ export default function RegisterPage() {
             AI 자산 등록
           </h1>
           <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground text-pretty md:text-base">
-            AI Dataset과 AI ModelNameplate의 기본 정보를 입력하고, 각 AAS Submodel 파일을
-            업로드하세요.
+            통합 AAS 파일을 업로드하거나 외부 연동으로 내 Instance를 가져오세요.
             <br />
-            상세 메타데이터는 업로드 후 Submodel에서 자동으로 추출됩니다.
+            AI Dataset과 AI ModelNameplate가 자동으로 분류되고, 메타데이터는 Submodel에서 자동으로
+            추출됩니다.
           </p>
         </div>
       </section>
