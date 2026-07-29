@@ -51,6 +51,16 @@ type MappingAction = "include" | "exclude" | "hold"
 type MappingStatus = "auto" | "review" | "excluded"
 type ExecutionStatus = "idle" | "running" | "complete"
 
+type UploadedFileInfo = {
+  name: string
+  sizeLabel: string
+  columns: string[]
+  columnCount: number
+  rowCount: number
+  previewRows: string[][]
+  uploadedAt: string
+}
+
 const SESSION_SECONDS = 30 * 60
 
 const STEPS = [
@@ -182,6 +192,29 @@ function confidenceColor(value: number): string {
   if (value >= 0.8) return "bg-emerald-500"
   if (value >= 0.5) return "bg-amber-500"
   return "bg-red-500"
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
+
+function formatUploadedAt(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+function parseCsv(text: string): { columns: string[]; rows: string[][] } {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0)
+  if (lines.length === 0) return { columns: [], rows: [] }
+  const splitLine = (line: string) => line.split(",").map((cell) => cell.trim())
+  return {
+    columns: splitLine(lines[0]),
+    rows: lines.slice(1).map(splitLine),
+  }
 }
 
 /* ---------- Step indicator ---------- */
@@ -329,7 +362,9 @@ export function ModelDeployWorkbench({ model }: { model: Model }) {
 
   const [currentStep, setCurrentStep] = useState(1)
   const [selectedInputType, setSelectedInputType] = useState<InputType>(null)
-  const [uploaded, setUploaded] = useState(false)
+  const [fileInfo, setFileInfo] = useState<UploadedFileInfo | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [mappingActions, setMappingActions] = useState<
     Record<string, MappingAction>
@@ -389,10 +424,53 @@ export function ModelDeployWorkbench({ model }: { model: Model }) {
     toast.success("Endpoint URL을 복사했습니다")
   }
 
-  const handleUpload = () => {
-    setUploaded(true)
-    setSelectedInputType("upload")
-    toast.success("CSV 파일 업로드가 완료되었습니다")
+  const uploaded = fileInfo !== null
+
+  const openFilePicker = () => {
+    fileInputRef.current?.click()
+  }
+
+  const processFile = async (file: File) => {
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      toast.error("CSV 파일만 업로드할 수 있습니다")
+      return
+    }
+    try {
+      const text = await file.text()
+      const { columns, rows } = parseCsv(text)
+      if (columns.length === 0) {
+        toast.error("파일에서 컬럼을 읽지 못했습니다")
+        return
+      }
+      setFileInfo({
+        name: file.name,
+        sizeLabel: formatBytes(file.size),
+        columns,
+        columnCount: columns.length,
+        rowCount: rows.length,
+        previewRows: rows.slice(0, 5),
+        uploadedAt: formatUploadedAt(new Date()),
+      })
+      setSelectedInputType("upload")
+      toast.success("CSV 파일 업로드가 완료되었습니다")
+    } catch {
+      toast.error("파일을 읽는 중 오류가 발생했습니다")
+    }
+  }
+
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0]
+    if (file) void processFile(file)
+    event.target.value = ""
+  }
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragging(false)
+    const file = event.dataTransfer.files?.[0]
+    if (file) void processFile(file)
   }
 
   const canProceedFromUpload =
@@ -425,7 +503,7 @@ export function ModelDeployWorkbench({ model }: { model: Model }) {
     if (logTimer.current) window.clearInterval(logTimer.current)
     setCurrentStep(1)
     setSelectedInputType(null)
-    setUploaded(false)
+    setFileInfo(null)
     setExecutionStatus("idle")
     setLogIndex(-1)
     setMappingActions(
@@ -577,7 +655,10 @@ export function ModelDeployWorkbench({ model }: { model: Model }) {
                         title="예제 데이터 사용"
                         description="등록된 연계 데이터셋의 샘플 데이터로 테스트를 진행합니다."
                         selected={selectedInputType === "example"}
-                        onSelect={() => setSelectedInputType("example")}
+                        onSelect={() => {
+                          setSelectedInputType("example")
+                          setFileInfo(null)
+                        }}
                       />
                       <InputSourceCard
                         title="내 데이터 업로드"
@@ -588,82 +669,166 @@ export function ModelDeployWorkbench({ model }: { model: Model }) {
                     </div>
                   </section>
 
-                  <Separator />
-
-                  {/* Step 2 */}
-                  <section className="flex flex-col gap-4">
-                    <div>
-                      <h2 className="text-lg font-semibold">2. 데이터 업로드</h2>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        CSV 파일을 드래그하거나 클릭하여 업로드해주세요.
-                      </p>
-                    </div>
-
-                    {!uploaded ? (
-                      <button
-                        type="button"
-                        onClick={handleUpload}
-                        className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center transition-colors hover:border-primary/50 hover:bg-primary/5"
-                      >
-                        <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                          <UploadCloud className="size-6" />
-                        </span>
+                  {/* Example data path */}
+                  {selectedInputType === "example" && (
+                    <>
+                      <Separator />
+                      <section className="flex flex-col gap-4">
                         <div>
-                          <p className="font-medium">파일을 드래그하거나 클릭하여 업로드</p>
+                          <h2 className="text-lg font-semibold">
+                            2. 예제 데이터 확인
+                          </h2>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            CSV 파일만 업로드 가능합니다.
+                            등록된 연계 데이터셋의 샘플이 이미 매핑되어 있어 별도의 업로드와 Semantic Mapping 없이 바로 테스트할 수 있습니다.
                           </p>
                         </div>
-                      </button>
-                    ) : (
-                      <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-3 rounded-xl border border-border p-4">
+                        <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-4">
                           <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                            <FileText className="size-5" />
+                            <Database className="size-5" />
                           </span>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="truncate text-sm font-medium">
-                                machine_data_20250630.csv
-                              </p>
-                              <Check className="size-4 shrink-0 text-emerald-500" />
-                            </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium">
+                              예제 데이터셋 · machine_sample.csv
+                            </p>
                             <p className="mt-0.5 text-xs text-muted-foreground">
-                              CSV 파일 · 12 컬럼 · 1,284,930 행 · 1.24 MB
+                              7 컬럼 · 5,000 행 · Semantic Mapping 완료
                             </p>
                           </div>
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label="파일 삭제"
-                            onClick={() => {
-                              setUploaded(false)
-                              setSelectedInputType("upload")
-                            }}
-                          >
-                            <Trash2 />
-                          </Button>
                         </div>
-
-                        <div className="grid grid-cols-2 divide-border rounded-xl border border-border text-center sm:grid-cols-5 sm:divide-x">
-                          <FileStat label="확장자" value="CSV" />
-                          <FileStat label="컬럼 수" value="12" />
-                          <FileStat label="총 행수" value="1,284,930" />
-                          <FileStat label="파일 크기" value="1.24 MB" />
-                          <FileStat
-                            label="업로드 일시"
-                            value="2026-06-30 11:04"
-                          />
-                        </div>
-
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-medium">데이터 미리보기</h3>
                           <Badge variant="secondary">최대 5개 행</Badge>
                         </div>
-                        <DataPreviewTable />
-                      </div>
-                    )}
-                  </section>
+                        <DataPreviewTable
+                          columns={PREVIEW_COLUMNS}
+                          rows={PREVIEW_ROWS}
+                        />
+                      </section>
+                    </>
+                  )}
+
+                  {/* Upload data path */}
+                  {selectedInputType === "upload" && (
+                    <>
+                      <Separator />
+                      <section className="flex flex-col gap-4">
+                        <div>
+                          <h2 className="text-lg font-semibold">2. 데이터 업로드</h2>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            내 컴퓨터에 있는 CSV 파일을 드래그하거나 클릭하여 업로드해주세요.
+                          </p>
+                        </div>
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".csv,text/csv"
+                          className="sr-only"
+                          onChange={handleFileInputChange}
+                        />
+
+                        {!uploaded ? (
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={openFilePicker}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault()
+                                openFilePicker()
+                              }
+                            }}
+                            onDragOver={(event) => {
+                              event.preventDefault()
+                              setIsDragging(true)
+                            }}
+                            onDragLeave={() => setIsDragging(false)}
+                            onDrop={handleDrop}
+                            className={cn(
+                              "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-12 text-center transition-colors",
+                              isDragging
+                                ? "border-primary bg-primary/5"
+                                : "border-border bg-muted/30 hover:border-primary/50 hover:bg-primary/5"
+                            )}
+                          >
+                            <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                              <UploadCloud className="size-6" />
+                            </span>
+                            <div>
+                              <p className="font-medium">
+                                파일을 드래그하거나 클릭하여 업로드
+                              </p>
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                CSV 파일만 업로드 가능합니다.
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          fileInfo && (
+                            <div className="flex flex-col gap-4">
+                              <div className="flex items-center gap-3 rounded-xl border border-border p-4">
+                                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                  <FileText className="size-5" />
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="truncate text-sm font-medium">
+                                      {fileInfo.name}
+                                    </p>
+                                    <Check className="size-4 shrink-0 text-emerald-500" />
+                                  </div>
+                                  <p className="mt-0.5 text-xs text-muted-foreground">
+                                    CSV 파일 · {fileInfo.columnCount} 컬럼 ·{" "}
+                                    {fileInfo.rowCount.toLocaleString()} 행 ·{" "}
+                                    {fileInfo.sizeLabel}
+                                  </p>
+                                </div>
+                                <Button
+                                  size="icon-sm"
+                                  variant="ghost"
+                                  aria-label="파일 삭제"
+                                  onClick={() => setFileInfo(null)}
+                                >
+                                  <Trash2 />
+                                </Button>
+                              </div>
+
+                              <div className="grid grid-cols-2 divide-border rounded-xl border border-border text-center sm:grid-cols-5 sm:divide-x">
+                                <FileStat label="확장자" value="CSV" />
+                                <FileStat
+                                  label="컬럼 수"
+                                  value={String(fileInfo.columnCount)}
+                                />
+                                <FileStat
+                                  label="총 행수"
+                                  value={fileInfo.rowCount.toLocaleString()}
+                                />
+                                <FileStat
+                                  label="파일 크기"
+                                  value={fileInfo.sizeLabel}
+                                />
+                                <FileStat
+                                  label="업로드 일시"
+                                  value={fileInfo.uploadedAt}
+                                />
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-medium">
+                                  데이터 미리보기
+                                </h3>
+                                <Badge variant="secondary">최대 5개 행</Badge>
+                              </div>
+                              <DataPreviewTable
+                                columns={fileInfo.columns}
+                                rows={fileInfo.previewRows}
+                              />
+                            </div>
+                          )
+                        )}
+                      </section>
+                    </>
+                  )}
 
                   <Separator />
 
@@ -676,13 +841,20 @@ export function ModelDeployWorkbench({ model }: { model: Model }) {
                       <ArrowLeft />
                       이전 단계
                     </Button>
-                    <Button
-                      onClick={() => setCurrentStep(3)}
-                      disabled={!canProceedFromUpload}
-                    >
-                      다음 단계: Semantic Mapping 설정
-                      <ArrowRight />
-                    </Button>
+                    {selectedInputType === "example" ? (
+                      <Button onClick={() => setCurrentStep(4)}>
+                        다음 단계: 테스트 실행
+                        <ArrowRight />
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => setCurrentStep(3)}
+                        disabled={!canProceedFromUpload}
+                      >
+                        다음 단계: Semantic Mapping 설정
+                        <ArrowRight />
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -708,7 +880,9 @@ export function ModelDeployWorkbench({ model }: { model: Model }) {
                 includedColumns={includedColumns.map((c) => c.column)}
                 executionStatus={executionStatus}
                 logIndex={logIndex}
-                onBack={() => setCurrentStep(3)}
+                onBack={() =>
+                  setCurrentStep(selectedInputType === "example" ? 1 : 3)
+                }
                 onRun={runTest}
               />
             )}
@@ -785,13 +959,19 @@ function FileStat({ label, value }: { label: string; value: string }) {
   )
 }
 
-function DataPreviewTable() {
+function DataPreviewTable({
+  columns,
+  rows,
+}: {
+  columns: string[]
+  rows: string[][]
+}) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border">
       <table className="w-full min-w-[640px] text-sm">
         <thead>
           <tr className="border-b border-border bg-muted/40 text-left">
-            {PREVIEW_COLUMNS.map((col) => (
+            {columns.map((col) => (
               <th
                 key={col}
                 className="whitespace-nowrap px-3 py-2.5 font-mono text-xs font-medium text-muted-foreground"
@@ -802,7 +982,7 @@ function DataPreviewTable() {
           </tr>
         </thead>
         <tbody>
-          {PREVIEW_ROWS.map((row, rowIndex) => (
+          {rows.map((row, rowIndex) => (
             <tr
               key={rowIndex}
               className="border-b border-border last:border-0"
